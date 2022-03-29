@@ -13,19 +13,17 @@ data TimeEdge = TimeEdge
 
 -- Nodes used in DAG
 
+data FrozenNode staticType = FrozenNode
+    { staticInformation :: staticType
+    , fields :: [[FrozenEdge staticType]]
+    }
+    deriving (Show)
+
 data FrozenEdge staticType = FrozenEdge
     { node_to :: FrozenNode staticType
     , frozen_time_from :: Int
     , frozen_time_to :: Int
     }
-    deriving (Show)
-
-data FrozenTree staticType
-    = FrozenLeaf
-    | FrozenInternalNode
-        { staticInformation :: staticType
-        , fields :: [[FrozenEdge staticType]]
-        }
     deriving (Show)
 
 

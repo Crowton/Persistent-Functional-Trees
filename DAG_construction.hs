@@ -52,7 +52,7 @@ build edgeList isStaticList rootList idCount degreeBound =
                                         }
                                 ) edges
                         ) forwards in
-                let node = FrozenInternalNode {staticInformation = idToStatic MH.! id, fields = fields} in
+                let node = FrozenNode {staticInformation = idToStatic MH.! id, fields = fields} in
                 let parents = MH.findWithDefault [] id backwards in
                 let newOutDegree = foldl (\m p -> MH.insert p (m MH.! p - 1) m) outDegree parents in
                 let newZeroOut = filter (\p -> newOutDegree MH.! p == 0) parents in
