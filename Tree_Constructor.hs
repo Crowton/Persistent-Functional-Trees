@@ -8,7 +8,7 @@ import qualified Data.Map.Strict as MB
 
 import Debug.Trace
 
-construct :: Show s => MB.Map Int (FrozenNode s) -> Int -> Tree s
+construct :: MB.Map Int (FrozenNode s) -> Int -> Tree s
 construct rootMap time =
     let root = case MB.lookupLE time rootMap of
             Nothing -> Nothing

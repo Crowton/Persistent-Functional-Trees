@@ -2,18 +2,22 @@
 module DAG_construction where
 
 import DataRecords as D
+import Tree_Constructor as T
 
+import Data.List
 import qualified Data.HashMap.Strict as MH
 import qualified Data.Map.Strict as MB
-import Data.List
+
 import Debug.Trace
 import Language.Haskell.TH
 
 -- Fields are integers in the range [0 .. d-1]
 
-build :: [TimeEdge] -> [(Int, s)] -> [(Int, Int)] -> Int -> Int -> MB.Map Int (FrozenNode s) -- M.HashMap Int (FrozenNode s)
-build edgeList isStaticList rootList idCount degreeBound =
-    let idToStatic = MH.fromList isStaticList in
+build :: PartialTree s -> (Int -> Tree s)
+build partialTree =
+    let edgeList = edgeFreezer partialTree in
+    
+    let idToStatic = MH.fromList (idStaticList partialTree) in
 
     let forwards
             = map ( \i ->
@@ -22,7 +26,7 @@ build edgeList isStaticList rootList idCount degreeBound =
                     let edges = MH.findWithDefault [] (id_from e) m in
                     MH.insert (id_from e) (e : edges) m
                 ) MH.empty relevantEdges
-            ) [0 .. degreeBound - 1] in
+            ) [0 .. (fieldCount partialTree) - 1] in
 
     let backwards
             = foldl (\m e ->
@@ -36,7 +40,7 @@ build edgeList isStaticList rootList idCount degreeBound =
                 MH.insert (id_from e) (degree + 1) m
             ) MH.empty edgeList in
     
-    let zeroOutDegree = filter (\id -> not (MH.member id outDegree)) [0 .. idCount - 1] in
+    let zeroOutDegree = filter (\id -> not (MH.member id outDegree)) [0 .. (idCount partialTree) - 1] in
 
     let innerRec zeroOutDegree outDegree idToInstance = case zeroOutDegree of
             [] -> idToInstance
@@ -60,10 +64,10 @@ build edgeList isStaticList rootList idCount degreeBound =
     in
     
     let idToNode = innerRec zeroOutDegree outDegree MH.empty in
+    let rootNodeList = map (\(t, r) -> (t, idToNode MH.! r)) (rootList partialTree) in
+    let rootMap = MB.fromDistinctAscList rootNodeList in  -- TODO: decending list, as roots are added first to the list!
     
-    let rootNodeList = map (\(t, r) -> (t, idToNode MH.! r)) rootList in
-    
-    MB.fromDistinctAscList rootNodeList  -- TODO: decending list, as roots are added first to the list!
+    T.construct rootMap
 
     -- lookupLE
 

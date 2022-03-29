@@ -1,6 +1,9 @@
 
 module DataRecords where
 
+
+-- Update structure
+
 data TimeEdge = TimeEdge
     { id_from :: Int
     , field :: Int
@@ -9,6 +12,14 @@ data TimeEdge = TimeEdge
     , time_to :: Int
     }
     deriving (Show)
+
+data PartialTree s = PartialTree
+    { edgeFreezer :: [TimeEdge]
+    , idStaticList :: [(Int, s)]
+    , rootList :: [(Int, Int)]
+    , idCount :: Int
+    , fieldCount :: Int
+    }
 
 
 -- Nodes used in DAG
