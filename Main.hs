@@ -1,5 +1,7 @@
 module Main where
 
+import Data.Function
+
 import qualified Data.Map.Strict as MB
 
 import DataRecords as D
@@ -7,6 +9,9 @@ import PartialTree_Create as Crea
 import DAG_construction as C
 -- import Query as Q
 -- import Tree_Constructor as TC
+
+import Binary_Tree_temporal
+import Prettify
 
 import Debug.Trace
 
@@ -46,4 +51,13 @@ main = do
                 , currentTree = Leaf})
     -- print (MB.lookupLE 4 graph)
     -- print (stupidContains graph 3 3)
-    print (stupidContains2 treeGen 3 1)
+    -- print (stupidContains2 treeGen 3 1)
+    -- let tree = Node {elm=2, children=[Node {elm=1, children=[Leaf, Leaf]}, Leaf]}
+    let tree = Leaf
+                & insert 3
+                & insert 1
+                & insert 2
+                & insert 4
+                & delete 3
+    putStrLn (pretty_tree tree)
+    print (contains 1 tree)

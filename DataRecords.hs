@@ -22,6 +22,7 @@ data PartialTree s = PartialTree
     , time :: Int
     , currentTree :: Tree s
     }
+    deriving (Show)
 
 
 -- Nodes used in DAG
@@ -49,3 +50,4 @@ data Tree t
         { elm :: t
         , children :: [Tree t]
         }
+    deriving (Show)
