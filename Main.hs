@@ -41,7 +41,9 @@ main = do
                 , idStaticList = [(0, 0 :: Int), (1, 1 :: Int), (2, 2 :: Int), (3, 3 :: Int), (4, 4 :: Int)]
                 , rootList = [(1, 1), (2, 0)]
                 , idCount = 5
-                , fieldCount = 2})
+                , fieldCount = 2
+                , time = 4
+                , currentTree = Leaf})
     -- print (MB.lookupLE 4 graph)
     -- print (stupidContains graph 3 3)
     print (stupidContains2 treeGen 3 1)

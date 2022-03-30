@@ -28,12 +28,13 @@ data PartialTree s = PartialTree
 
 data FrozenNode staticType = FrozenNode
     { staticInformation :: staticType
-    , fields :: [[FrozenEdge staticType]]
+    , fields :: [FrozenEdge staticType]
     }
     deriving (Show)
 
 data FrozenEdge staticType = FrozenEdge
-    { node_to :: FrozenNode staticType
+    { field_from :: Int
+    , node_to :: FrozenNode staticType
     , frozen_time_from :: Int
     , frozen_time_to :: Int
     }

@@ -17,8 +17,12 @@ query func rootMap time =
     let getField node fieldNum = case node of
             Nothing -> error "Leaf nodes do not have any fields!"
             Just (FrozenNode {fields=fields}) ->
-                let fieldList = fields L.!! fieldNum in
-                let validEdges = filter (\e -> frozen_time_from e <= time && time < frozen_time_to e) fieldList in
+                let validEdges
+                        = filter (\e ->
+                                    field_from e == fieldNum
+                                    && frozen_time_from e <= time
+                                    && time < frozen_time_to e
+                        ) fields in
                 case validEdges of
                     [] -> traverse Nothing
                     [FrozenEdge {node_to=node_to}] -> traverse (Just node_to)
