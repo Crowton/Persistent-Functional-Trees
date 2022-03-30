@@ -12,7 +12,7 @@ construct_empty_tree fieldCount =
         idCount = 0,
         fieldCount = fieldCount,
         time = 0,
-        currentTree = Leaf
+        currentTree = TimeLeaf
     }
 
 

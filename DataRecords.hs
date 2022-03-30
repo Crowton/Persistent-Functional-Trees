@@ -13,14 +13,24 @@ data TimeEdge = TimeEdge
     }
     deriving (Show)
 
+data TimeTree s
+    = TimeLeaf
+    | TimeNode
+        { t_elm :: s
+        , t_id :: Int
+        , t_fields :: [(Int, TimeTree s)] -- (Exists from time, nodeto)
+        }
+    deriving (Show)
+
+-- TODO: add dynamic information
 data PartialTree s = PartialTree
     { edgeFreezer :: [TimeEdge]
-    , idStaticList :: [(Int, s)]
-    , rootList :: [(Int, Int)]
+    , idStaticList :: [(Int, s)]  -- (id, static_info)
+    , rootList :: [(Int, Int)]  -- (time, id)
     , idCount :: Int
     , fieldCount :: Int
     , time :: Int
-    , currentTree :: Tree s
+    , currentTree :: TimeTree s
     }
     deriving (Show)
 
