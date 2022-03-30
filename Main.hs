@@ -3,6 +3,7 @@ module Main where
 import qualified Data.Map.Strict as MB
 
 import DataRecords as D
+import PartialTree_Create as Crea
 import DAG_construction as C
 -- import Query as Q
 -- import Tree_Constructor as TC

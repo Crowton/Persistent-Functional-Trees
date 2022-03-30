@@ -19,6 +19,8 @@ data PartialTree s = PartialTree
     , rootList :: [(Int, Int)]
     , idCount :: Int
     , fieldCount :: Int
+    , time :: Int
+    , currentTree :: Tree s
     }
 
 
