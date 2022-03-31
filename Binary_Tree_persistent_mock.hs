@@ -32,16 +32,22 @@ insert e partialTree =
                     if e == t_elm
                         then tree
                         else if e < t_elm
-                                then TimeNode
-                                        { t_elm = t_elm
-                                        , t_id = t_id
-                                        , t_fields = [(left_time, inner_insert left_tree), (right_time, right_tree)]
-                                        }
-                                else TimeNode
-                                        { t_elm = t_elm
-                                        , t_id = t_id
-                                        , t_fields = [(left_time, left_tree), (right_time, inner_insert right_tree)]
-                                        }
+                                then let new_left_time = case left_tree of
+                                            TimeLeaf -> current_time
+                                            TimeNode {} -> left_time
+                                     in TimeNode
+                                            { t_elm = t_elm
+                                            , t_id = t_id
+                                            , t_fields = [(new_left_time, inner_insert left_tree), (right_time, right_tree)]
+                                            }
+                                else let new_right_time = case right_tree of
+                                            TimeLeaf -> current_time
+                                            TimeNode {} -> right_time
+                                     in TimeNode
+                                            { t_elm = t_elm
+                                            , t_id = t_id
+                                            , t_fields = [(left_time, left_tree), (new_right_time, inner_insert right_tree)]
+                                            }
     in
     
     let new_tree = inner_insert (currentTree partialTree) in
