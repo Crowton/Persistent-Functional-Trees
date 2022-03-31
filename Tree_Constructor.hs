@@ -8,7 +8,7 @@ import qualified Data.Map.Strict as MB
 
 import Debug.Trace
 
-construct :: Int -> MB.Map Int (FrozenNode s) -> Int -> Tree s
+construct :: Show s => Int -> MB.Map Int (FrozenNode s) -> Int -> Tree s
 construct fieldCount rootMap time =
     let root = case MB.lookupLE time rootMap of
             Nothing -> Nothing
@@ -24,13 +24,15 @@ construct fieldCount rootMap time =
                             = map (\fieldNum ->
                                     let validEdges
                                             = filter (\e ->
+                                                        -- trace ("Gen " ++ (show staticInformation) ++ " " ++ (show fieldNum) ++ " " ++ (show (frozen_time_from e, frozen_time_to e))) $
                                                         field_from e == fieldNum
                                                         && frozen_time_from e <= time
                                                         && time < frozen_time_to e
                                             ) fields in
                                     case validEdges of
                                         [] -> gen Nothing
-                                        [FrozenEdge {node_to=node_to}] -> gen (Just node_to)
+                                        [FrozenEdge {node_to=node_to}] ->
+                                            gen (Just node_to)
                                         _ -> error "Multiple valid edges at time!"
                             ) [0 .. (fieldCount - 1)]
                     in

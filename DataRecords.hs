@@ -37,6 +37,7 @@ data PartialTree s = PartialTree
 
 -- Nodes used in DAG
 
+-- TODO: make tree with leafs? for empty tree
 data FrozenNode staticType = FrozenNode
     { staticInformation :: staticType
     , fields :: [FrozenEdge staticType]

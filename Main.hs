@@ -60,5 +60,20 @@ main = do
                 & TEM.insert 2
                 & TEM.insert 4
                 & TEM.delete 3
-    putStrLn (pretty_tree tree)
-    print (TEM.contains 1 tree)
+    -- putStrLn (pretty_tree tree)
+    -- print (TEM.contains 1 tree)
+
+    let persistent_tree =
+            PER.construct_empty_tree
+            & PER.insert 3
+            & PER.insert 1
+            & PER.insert 2
+            & PER.insert 4
+    
+    let build_tree = build persistent_tree
+    
+    putStrLn ("Time 0:\n" ++ (pretty_tree (build_tree 0)) ++ "\n")
+    putStrLn ("Time 1:\n" ++ (pretty_tree (build_tree 1)) ++ "\n")
+    putStrLn ("Time 2:\n" ++ (pretty_tree (build_tree 2)) ++ "\n")
+    putStrLn ("Time 3:\n" ++ (pretty_tree (build_tree 3)) ++ "\n")
+    putStrLn ("Time 4:\n" ++ (pretty_tree (build_tree 4)) ++ "\n")
