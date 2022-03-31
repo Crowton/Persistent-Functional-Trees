@@ -7,19 +7,21 @@ construct_empty_tree =
     PartialTree {
         edgeFreezer = [],
         idStaticList = [],
-        rootList = [],
+        rootList = [(0, -1)],
         idCount = 0,
         fieldCount = 2,
-        time = 0,
+        time = 1,
         currentTree = TimeLeaf
     }
 
 
 insert :: Ord s => s -> PartialTree s -> PartialTree s
 insert e partialTree =
+    -- Fetch next id and time
     let next_id = idCount partialTree in
     let current_time = time partialTree in
-
+    
+    -- Function to insert tree, and label time on edges
     let inner_insert tree
             = case tree of
                 TimeLeaf ->
@@ -50,10 +52,15 @@ insert e partialTree =
                                             }
     in
     
+    -- Construct new tree
     let new_tree = inner_insert (currentTree partialTree) in
-    let new_rootList = if (rootList partialTree) == []
-                            then [(current_time + 1, next_id)]
-                            else rootList partialTree
+
+    -- If tree was empty before, the new node must be root
+    let new_rootList =
+            (case currentTree partialTree of
+                TimeLeaf -> [(current_time, next_id)]
+                TimeNode {} -> []
+            ) ++ (rootList partialTree)
     in
     
     PartialTree

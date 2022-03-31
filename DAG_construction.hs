@@ -85,11 +85,14 @@ build partialTree =
     
     -- Create id to instance
     let idToNode = innerRec zeroOutDegree outDegree MH.empty in
-    let rootNodeList = map (\(t, r) -> (t, idToNode MH.! r)) (rootList partialTree) in
+    
+    -- Create rootmap
+    let newRootList = (finish_time, -1) : (rootList partialTree) in
+    let rootNodeList = map (\(t, r) -> (t, if r == -1 then Nothing else Just (idToNode MH.! r))) newRootList in
     
     -- TODO: kill root node at finish time OR make actual leafs
     -- Create root map
-    let rootMap = MB.fromDistinctAscList rootNodeList in  -- TODO: decending list, as roots are added first to the list!
+    let rootMap = MB.fromDistinctDescList rootNodeList in
     
     -- Return tree constructor
     T.construct (fieldCount partialTree) rootMap

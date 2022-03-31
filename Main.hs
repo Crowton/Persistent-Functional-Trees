@@ -77,3 +77,4 @@ main = do
     putStrLn ("Time 2:\n" ++ (pretty_tree (build_tree 2)) ++ "\n")
     putStrLn ("Time 3:\n" ++ (pretty_tree (build_tree 3)) ++ "\n")
     putStrLn ("Time 4:\n" ++ (pretty_tree (build_tree 4)) ++ "\n")
+    putStrLn ("Time 5:\n" ++ (pretty_tree (build_tree 5)) ++ "\n")
