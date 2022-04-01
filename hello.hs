@@ -1,3 +1,7 @@
+{-# LANGUAGE BangPatterns #-}
+
+import Debug.Trace
+
 fact :: Int -> Int
 fact 0 = 1
 fact n = n * (fact (n - 1))
@@ -21,8 +25,14 @@ toIntAux (c : cs) = (charToInt c) + 10 * (toIntAux cs)
 toInt :: [Char] -> Int
 toInt cs = toIntAux (reverse cs)
 
+f x = trace "hello" $ (x + 1)
+
 main = do
-    putStrLn "Hello World!"
-    print (fact 5)
-    print ((\x -> x + 1) 4)
-    print (toInt "409473")
+    -- putStrLn "Hello World!"
+    -- print (fact 5)
+    -- print ((\x -> x + 1) 4)
+    -- print (toInt "409473")
+
+    let !y = f 7
+    print "hej"
+    -- print (y * y)

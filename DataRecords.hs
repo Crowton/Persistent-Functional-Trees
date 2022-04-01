@@ -26,7 +26,7 @@ data TimeTree s
 data PartialTree s = PartialTree
     { edgeFreezer :: [TimeEdge]
     , idStaticList :: [(Int, s)]  -- (id, static_info)
-    , rootList :: [(Int, Int)]  -- (time, id)
+    , rootList :: [(Int, Int)]  -- (time, id), convention: id '-1' is the empty tree
     , idCount :: Int
     , fieldCount :: Int
     , time :: Int
