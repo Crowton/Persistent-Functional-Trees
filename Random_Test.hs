@@ -12,17 +12,23 @@ import Binary_Tree_temporal as TEM
 import Binary_Tree_persistent_mock as PER
 import DAG_construction
 
+import Data.List
+
 
 binary_tree_test :: Int -> Bool
 binary_tree_test num =
+    let seed = 42 in
+    let pureGen = mkStdGen seed in
+    let rolls n = take n . unfoldr (Just . uniformR (0, 2 * n)) in
+    let random_elements = rolls num pureGen in
+
     let (temporal_list, persistent_tree) = 
-            foldl (\(tem_h : tem_t, per) i ->
-                    let new_element = i in --uniformR (1 :: Int, 10 :: Int) in
-                    -- trace ("Random insert! " ++ (show new_element)) $
-                    let next_tem = TEM.insert new_element tem_h in
-                    let next_per = PER.insert new_element per in
+            foldl (\(tem_h : tem_t, per) element ->
+                    -- trace ("Random insert! " ++ (show element)) $
+                    let next_tem = TEM.insert element tem_h in
+                    let next_per = PER.insert element per in
                     (next_tem : tem_h : tem_t, next_per)
-            ) ([Leaf], PER.construct_empty_tree) [1 .. num]
+            ) ([Leaf], PER.construct_empty_tree) random_elements
     in
     
     let build_persistent_tree = build persistent_tree in

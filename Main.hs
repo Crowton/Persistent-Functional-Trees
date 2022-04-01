@@ -18,6 +18,8 @@ import Random_Test
 
 import Debug.Trace
 
+import System.IO
+
 -- stupidContains :: MB.Map Int (FrozenNode Int) -> Int -> Int -> Bool
 -- stupidContains rootMap time key =
 --     let func info fieldQuery = case info of
@@ -81,4 +83,13 @@ main = do
     -- putStrLn ("Time 4:\n" ++ (pretty_tree (build_tree 4)) ++ "\n")
     -- putStrLn ("Time 5:\n" ++ (pretty_tree (build_tree 5)) ++ "\n")
 
-    print (binary_tree_test 100)
+    putStrLn "Running test..."
+
+    -- Insertion unbalanced binary tree
+    putStr "Insertion test... "
+    hFlush stdout
+
+    let binary_insertion_success = binary_tree_test 1000
+    if binary_insertion_success
+        then putStrLn "Success"
+        else error "Test failed!"
