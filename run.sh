@@ -1,3 +1,5 @@
+set -e
+
 # ghc DAG_construction.hs -o DAG
 # ./DAG
 

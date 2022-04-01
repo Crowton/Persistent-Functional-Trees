@@ -14,6 +14,8 @@ import Binary_Tree_temporal as TEM
 import Binary_Tree_persistent_mock as PER
 import Prettify
 
+import Random_Test
+
 import Debug.Trace
 
 -- stupidContains :: MB.Map Int (FrozenNode Int) -> Int -> Int -> Bool
@@ -72,9 +74,11 @@ main = do
     
     let build_tree = build persistent_tree
     
-    putStrLn ("Time 0:\n" ++ (pretty_tree (build_tree 0)) ++ "\n")
-    putStrLn ("Time 1:\n" ++ (pretty_tree (build_tree 1)) ++ "\n")
-    putStrLn ("Time 2:\n" ++ (pretty_tree (build_tree 2)) ++ "\n")
-    putStrLn ("Time 3:\n" ++ (pretty_tree (build_tree 3)) ++ "\n")
-    putStrLn ("Time 4:\n" ++ (pretty_tree (build_tree 4)) ++ "\n")
-    putStrLn ("Time 5:\n" ++ (pretty_tree (build_tree 5)) ++ "\n")
+    -- putStrLn ("Time 0:\n" ++ (pretty_tree (build_tree 0)) ++ "\n")
+    -- putStrLn ("Time 1:\n" ++ (pretty_tree (build_tree 1)) ++ "\n")
+    -- putStrLn ("Time 2:\n" ++ (pretty_tree (build_tree 2)) ++ "\n")
+    -- putStrLn ("Time 3:\n" ++ (pretty_tree (build_tree 3)) ++ "\n")
+    -- putStrLn ("Time 4:\n" ++ (pretty_tree (build_tree 4)) ++ "\n")
+    -- putStrLn ("Time 5:\n" ++ (pretty_tree (build_tree 5)) ++ "\n")
+
+    print (binary_tree_test 100)

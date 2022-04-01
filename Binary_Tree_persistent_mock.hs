@@ -1,6 +1,13 @@
+{-# LANGUAGE BangPatterns #-}
+{-# OPTIONS_GHC -Wall #-}
+
 module Binary_Tree_persistent_mock where
 
 import DataRecords
+
+-- import Prettify
+-- import Debug.Trace
+
 
 construct_empty_tree :: PartialTree s
 construct_empty_tree =
@@ -15,7 +22,7 @@ construct_empty_tree =
     }
 
 
-insert :: Ord s => s -> PartialTree s -> PartialTree s
+insert :: Show s => Ord s => s -> PartialTree s -> PartialTree s
 insert e partialTree =
     -- Fetch next id and time
     let next_id = idCount partialTree in
@@ -30,30 +37,33 @@ insert e partialTree =
                         , t_id = next_id
                         , t_fields = [(current_time, TimeLeaf), (current_time, TimeLeaf)]
                         }
-                TimeNode {t_elm=t_elm, t_id=t_id, t_fields=[(left_time, left_tree), (right_time, right_tree)]} ->
-                    if e == t_elm
+                TimeNode {t_elm=node_elm, t_id=node_id, t_fields=[(left_time, left_tree), (right_time, right_tree)]} ->
+                    if e == node_elm
                         then tree
-                        else if e < t_elm
-                                then let new_left_time = case left_tree of
+                        else if e < node_elm
+                                then let new_left_time = (case left_tree of
                                             TimeLeaf -> current_time
-                                            TimeNode {} -> left_time
+                                            TimeNode {} -> left_time)
                                      in TimeNode
-                                            { t_elm = t_elm
-                                            , t_id = t_id
+                                            { t_elm = node_elm
+                                            , t_id = node_id
                                             , t_fields = [(new_left_time, inner_insert left_tree), (right_time, right_tree)]
                                             }
                                 else let new_right_time = case right_tree of
                                             TimeLeaf -> current_time
                                             TimeNode {} -> right_time
                                      in TimeNode
-                                            { t_elm = t_elm
-                                            , t_id = t_id
+                                            { t_elm = node_elm
+                                            , t_id = node_id
                                             , t_fields = [(left_time, left_tree), (new_right_time, inner_insert right_tree)]
                                             }
+                _ -> error "Not reachable"
     in
     
     -- Construct new tree
     let new_tree = inner_insert (currentTree partialTree) in
+    
+    -- let v = if print_TimeTree new_tree then () else error "FUCK" in
 
     -- If tree was empty before, the new node must be root
     let new_rootList =
@@ -63,6 +73,7 @@ insert e partialTree =
             ) ++ (rootList partialTree)
     in
     
+    -- TODO: detect if there was a chance and not update id's and stuff
     PartialTree
         { edgeFreezer = edgeFreezer partialTree
         , idStaticList = (next_id, e) : (idStaticList partialTree)

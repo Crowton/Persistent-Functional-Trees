@@ -19,7 +19,6 @@ construct fieldCount rootMap time =
             = case frozenTree of
                 Nothing -> Leaf
                 Just (FrozenNode {staticInformation=staticInformation, fields=fields}) ->
-                    -- trace ("Generating node " ++ (show staticInformation) ++ " ...") $
                     let children
                             = map (\fieldNum ->
                                     let validEdges
