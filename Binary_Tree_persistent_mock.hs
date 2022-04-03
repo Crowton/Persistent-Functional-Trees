@@ -89,46 +89,115 @@ delete e partialTree =
     let next_id = idCount partialTree in
     let current_time = time partialTree in
 
+    -- Function to extract maximum element from tree
+    -- Return tuple of new tree, maybe max element and new edges for the freezer
+    let extract_max tree
+            = case tree of
+                TimeLeaf -> (TimeLeaf, Nothing, [])
+                TimeNode {t_elm=node_elm, t_id=node_id, t_fields=[(left_time, left_tree), (right_time, right_tree)]} ->
+                    case right_tree of
+                            TimeLeaf ->
+                                ( left_tree
+                                , Just node_elm
+                                , case left_tree of
+                                        TimeLeaf -> []
+                                        TimeNode {t_id=old_id} ->
+                                            [ TimeEdge
+                                                { id_from = node_id
+                                                , field = 0
+                                                , id_to = old_id
+                                                , time_from = left_time
+                                                , time_to = current_time
+                                                }
+                                            ]
+                                )
+                            TimeNode {t_id=old_id} ->
+                                let (new_right_tree, max_maybe, rec_frozen) = extract_max right_tree in
+                                let (new_right_time, new_frozen) =
+                                        case new_right_tree of
+                                            TimeLeaf ->
+                                                    ( current_time
+                                                    , [TimeEdge
+                                                        { id_from = node_id
+                                                        , field = 1
+                                                        , id_to = old_id
+                                                        , time_from = right_time
+                                                        , time_to = current_time
+                                                        }]
+                                                    )
+                                            TimeNode {t_id=new_id} ->
+                                                    if old_id == new_id
+                                                        then (right_time, [])
+                                                        else ( current_time
+                                                             , [TimeEdge
+                                                                 { id_from = node_id
+                                                                 , field = 1
+                                                                 , id_to = old_id
+                                                                 , time_from = right_time
+                                                                 , time_to = current_time
+                                                                 }]
+                                                              )
+                                in
+                                ( TimeNode
+                                    { t_elm = node_elm
+                                    , t_id = node_id
+                                    , t_fields = [(left_time, left_tree), (new_right_time, new_right_tree)]
+                                    }
+                                , max_maybe
+                                , new_frozen ++ rec_frozen
+                                )
+    in
+
     -- Function to delete tree, and label time on edges
     -- Return tuple of new tree and new edges for the freezer
     -- TODO: refracter this shit
     let inner_delete tree
             = case tree of
-                TimeLeaf -> (TimeLeaf, [])
+                TimeLeaf -> (TimeLeaf, [], [])
                 TimeNode {t_elm=node_elm, t_id=node_id, t_fields=[(left_time, left_tree), (right_time, right_tree)]} ->
                     if e == node_elm
-                        then ( TimeLeaf
-                             , (case left_tree of
-                                 TimeLeaf -> []
-                                 TimeNode {t_id=old_id} ->
-                                     [ TimeEdge
-                                        { id_from = node_id
-                                        , field = 0
-                                        , id_to = old_id
-                                        , time_from = left_time
-                                        , time_to = current_time
-                                        }
-                                     ]) ++
-                               (case right_tree of
-                                 TimeLeaf -> []
-                                 TimeNode {t_id=old_id} ->
-                                     [ TimeEdge
-                                        { id_from = node_id
-                                        , field = 1
-                                        , id_to = old_id
-                                        , time_from = right_time
-                                        , time_to = current_time
-                                        }
-                                     ])
-                             )
+                        then let new_frozen =
+                                    (case left_tree of
+                                        TimeLeaf -> []
+                                        TimeNode {t_id=old_id} ->
+                                            [ TimeEdge
+                                                { id_from = node_id
+                                                , field = 0
+                                                , id_to = old_id
+                                                , time_from = left_time
+                                                , time_to = current_time
+                                                }
+                                            ]) ++
+                                    (case right_tree of
+                                        TimeLeaf -> []
+                                        TimeNode {t_id=old_id} ->
+                                            [ TimeEdge
+                                                { id_from = node_id
+                                                , field = 1
+                                                , id_to = old_id
+                                                , time_from = right_time
+                                                , time_to = current_time
+                                                }
+                                            ])
+                             in
+                             let (new_left_tree, max_maybe, rec_frozen) = extract_max left_tree in
+                             case max_maybe of
+                                    Nothing -> (right_tree, new_frozen, [])  -- No need for rec_frozen, as it must be empty
+                                    Just max_elm ->
+                                            ( TimeNode
+                                                { t_elm = max_elm
+                                                , t_id = next_id
+                                                , t_fields = [(current_time, new_left_tree), (current_time, right_tree)]
+                                                }
+                                            , new_frozen ++ rec_frozen
+                                            , [(next_id, max_elm)])
+                        
                         else if e < node_elm
-                                then let (new_left_tree, rec_frozen) = inner_delete left_tree in
+                                then let (new_left_tree, rec_frozen, id_map) = inner_delete left_tree in
                                      let (new_left_time, new_frozen) =
                                             case (left_tree, new_left_tree) of
                                                 (TimeLeaf, TimeLeaf) ->
-                                                        ( left_time
-                                                        , []
-                                                        )
+                                                        ( left_time, [] )
                                                 (TimeNode {t_id=old_id}, TimeLeaf) ->
                                                         ( current_time
                                                         , [TimeEdge
@@ -141,7 +210,7 @@ delete e partialTree =
                                                         )
                                                 (TimeNode {t_id=old_id}, TimeNode {t_id=new_id}) ->
                                                         if old_id == new_id
-                                                            then (left_time, [])
+                                                            then ( left_time, [] )
                                                             else ( current_time
                                                                  , [TimeEdge
                                                                      { id_from = node_id
@@ -156,8 +225,9 @@ delete e partialTree =
                                             , t_id = node_id
                                             , t_fields = [(new_left_time, new_left_tree), (right_time, right_tree)]
                                             }
-                                        , new_frozen ++ rec_frozen)
-                                else let (new_right_tree, rec_frozen) = inner_delete right_tree in
+                                        , new_frozen ++ rec_frozen
+                                        , id_map)
+                                else let (new_right_tree, rec_frozen, id_map) = inner_delete right_tree in
                                      let (new_right_time, new_frozen) =
                                             case (right_tree, new_right_tree) of
                                                 (TimeLeaf, TimeLeaf) ->
@@ -191,13 +261,14 @@ delete e partialTree =
                                             , t_id = node_id
                                             , t_fields = [(left_time, left_tree), (new_right_time, new_right_tree)]
                                             }
-                                        , new_frozen ++ rec_frozen)
+                                        , new_frozen ++ rec_frozen
+                                        , id_map)
                 _ -> error "Not reachable"
     in
     
     -- Construct new tree
     let old_tree = currentTree partialTree in
-    let (new_tree, new_frozen) = inner_delete (old_tree) in
+    let (new_tree, new_frozen, new_id_map) = inner_delete (old_tree) in
     
     -- Collect frozen edges
     let new_edgeFreezer = new_frozen ++ (edgeFreezer partialTree) in
@@ -220,7 +291,7 @@ delete e partialTree =
     -- TODO: detect if there was a chance and not update id's and stuff
     PartialTree
         { edgeFreezer = new_edgeFreezer
-        , idStaticList = (next_id, e) : (idStaticList partialTree)
+        , idStaticList = new_id_map ++ (idStaticList partialTree)
         , rootList = new_rootList
         , idCount = next_id + 1
         , fieldCount = 2

@@ -47,10 +47,10 @@ main = do
     let persistent_tree =
             PER.construct_empty_tree
             & PER.insert 3
-            & PER.insert 1
             & PER.insert 2
+            & PER.insert 1
             & PER.insert 4
-            & PER.delete 1
+            & PER.delete 2
             & PER.delete 4
     
     let build_tree = build persistent_tree
