@@ -28,7 +28,17 @@ run_tests = do
     putStr "Insertion test... "
     hFlush stdout
 
-    let binary_insertion_success = binary_tree_test 1000
+    let binary_insertion_success = binary_tree_test_insert 1000
+    if binary_insertion_success
+        then putStrLn "Success"
+        else error "Test failed!"
+    
+
+    -- Insertion + delete unbalanced binary tree
+    putStr "Deletion test... "
+    hFlush stdout
+
+    let binary_insertion_success = binary_tree_test_also_delete 2000
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -55,13 +65,13 @@ main = do
     
     let build_tree = build persistent_tree
     
-    putStrLn ("Time 0:\n" ++ (pretty_tree (build_tree 0)) ++ "\n")
-    putStrLn ("Time 1:\n" ++ (pretty_tree (build_tree 1)) ++ "\n")
-    putStrLn ("Time 2:\n" ++ (pretty_tree (build_tree 2)) ++ "\n")
-    putStrLn ("Time 3:\n" ++ (pretty_tree (build_tree 3)) ++ "\n")
-    putStrLn ("Time 4:\n" ++ (pretty_tree (build_tree 4)) ++ "\n")
-    putStrLn ("Time 5:\n" ++ (pretty_tree (build_tree 5)) ++ "\n")
-    putStrLn ("Time 6:\n" ++ (pretty_tree (build_tree 6)) ++ "\n")
-    putStrLn ("Time 7:\n" ++ (pretty_tree (build_tree 7)) ++ "\n")
+    -- putStrLn ("Time 0:\n" ++ (pretty_tree (build_tree 0)) ++ "\n")
+    -- putStrLn ("Time 1:\n" ++ (pretty_tree (build_tree 1)) ++ "\n")
+    -- putStrLn ("Time 2:\n" ++ (pretty_tree (build_tree 2)) ++ "\n")
+    -- putStrLn ("Time 3:\n" ++ (pretty_tree (build_tree 3)) ++ "\n")
+    -- putStrLn ("Time 4:\n" ++ (pretty_tree (build_tree 4)) ++ "\n")
+    -- putStrLn ("Time 5:\n" ++ (pretty_tree (build_tree 5)) ++ "\n")
+    -- putStrLn ("Time 6:\n" ++ (pretty_tree (build_tree 6)) ++ "\n")
+    -- putStrLn ("Time 7:\n" ++ (pretty_tree (build_tree 7)) ++ "\n")
 
-    -- run_tests
+    run_tests
