@@ -38,7 +38,7 @@ run_tests = do
     putStr "Deletion test... "
     hFlush stdout
 
-    let binary_insertion_success = binary_tree_test_also_delete 2000
+    let binary_insertion_success = binary_tree_test_delete 1000
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
