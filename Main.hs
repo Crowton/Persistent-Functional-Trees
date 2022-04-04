@@ -1,24 +1,19 @@
 module Main where
 
 import Data.Function
+import System.IO
 
-import qualified Data.Map.Strict as MB
-
-import DataRecords as D
-import PartialTree_Create as Crea
-import DAG_construction as C
--- import Query as Q
--- import Tree_Constructor as TC
+import DataRecords
 
 import Binary_Tree_temporal as TEM
-import Binary_Tree_persistent_mock as PER
-import Prettify
+import Binary_Tree_persistent as PER
+
+import DAG_construction
 
 import Random_Test
 
-import Debug.Trace
+import Prettify
 
-import System.IO
 
 
 run_tests = do
@@ -34,7 +29,7 @@ run_tests = do
         else error "Test failed!"
     
 
-    -- Insertion + delete unbalanced binary tree
+    -- Deletion unbalanced binary tree
     putStr "Deletion test... "
     hFlush stdout
 
@@ -51,6 +46,7 @@ main = do
                 & TEM.insert 2
                 & TEM.insert 4
                 & TEM.delete 3
+    
     -- putStrLn (pretty_tree tree)
     -- print (TEM.contains 1 tree)
 

@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# OPTIONS_GHC -Wall #-}
 
-module Binary_Tree_persistent_mock where
+module Binary_Tree_persistent where
 
 import DataRecords
 

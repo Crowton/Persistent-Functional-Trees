@@ -7,7 +7,7 @@ import System.Random
 
 import DataRecords
 import Binary_Tree_temporal as TEM
-import Binary_Tree_persistent_mock as PER
+import Binary_Tree_persistent as PER
 import DAG_construction
 
 import Data.List
