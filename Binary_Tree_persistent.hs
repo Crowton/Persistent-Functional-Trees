@@ -234,6 +234,7 @@ delete e partialTree =
                                             ])
                              in
                              
+                             -- TODO: deletion of element with no right tree does not need to extract
                              -- The element to be placed at the current location is the predesessor, which must be the maximum element of the left tree.
                              let (new_left_tree, max_maybe, rec_frozen) = extract_max left_tree in
                              

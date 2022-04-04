@@ -37,6 +37,17 @@ run_tests = do
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
+    
+
+    -- Deletion unbalanced binary tree
+    putStr "Node splitting test... "
+    hFlush stdout
+
+    let binary_insertion_success = binary_tree_high_time_out_degree_node 100
+    if binary_insertion_success
+        then putStrLn "Success"
+        else error "Test failed!"
+    
 
 
 main = do
