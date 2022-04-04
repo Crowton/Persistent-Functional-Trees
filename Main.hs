@@ -17,10 +17,10 @@ import Prettify
 
 
 run_tests = do
-    putStrLn "Running test..."
+    putStrLn "Running tests"
 
     -- Insertion unbalanced binary tree
-    putStr "Insertion test... "
+    putStr "Insertion test ......... "
     hFlush stdout
 
     let binary_insertion_success = binary_tree_test_insert 1000
@@ -30,21 +30,21 @@ run_tests = do
     
 
     -- Deletion unbalanced binary tree
-    putStr "Deletion test... "
+    putStr "Deletion test .......... "
     hFlush stdout
 
-    let binary_insertion_success = binary_tree_test_delete 1000
-    if binary_insertion_success
+    let binary_deletion_success = binary_tree_test_delete 1000
+    if binary_deletion_success
         then putStrLn "Success"
         else error "Test failed!"
     
 
     -- Deletion unbalanced binary tree
-    putStr "Node splitting test... "
+    putStr "Node splitting test .... "
     hFlush stdout
 
-    let binary_insertion_success = binary_tree_high_time_out_degree_node 100
-    if binary_insertion_success
+    let binary_split_success = binary_tree_high_time_out_degree_node 100
+    if binary_split_success
         then putStrLn "Success"
         else error "Test failed!"
     

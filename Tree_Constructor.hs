@@ -23,7 +23,6 @@ construct fieldCount rootMap time =
                             = map (\fieldNum ->
                                     let validEdges
                                             = filter (\e ->
-                                                        -- trace ("Gen " ++ (show staticInformation) ++ " " ++ (show fieldNum) ++ " " ++ (show (frozen_time_from e, frozen_time_to e))) $
                                                         field_from e == fieldNum
                                                         && frozen_time_from e <= time
                                                         && time < frozen_time_to e

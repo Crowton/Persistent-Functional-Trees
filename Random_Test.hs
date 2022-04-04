@@ -86,8 +86,8 @@ binary_tree_test_delete num =
 -- which the dag construction then needs to make smaller
 binary_tree_high_time_out_degree_node :: Int -> Bool
 binary_tree_high_time_out_degree_node num =
-    let first_path = [2 * num .. num + 2] ++ [1] in
-    let second_path = [num + 1 .. 2] in
+    let first_path = (reverse [num + 2 .. 2 * num]) ++ [1] in
+    let second_path = reverse [2 .. num + 1] in
 
     -- Build initial tree, using insertion
     let (temporal_base, persistent_base) =
