@@ -125,7 +125,7 @@ delete e partialTree =
                         (TimeLeaf, Nothing, [])
 
                 -- If the right subtree is empty, then the current node must be the maximum element
-                TimeNode {t_elm=node_elm, t_id=node_id, t_fields=[(left_time, left_tree), (right_time, TimeLeaf)]} ->
+                TimeNode {t_elm=node_elm, t_id=node_id, t_fields=[(left_time, left_tree), (_, TimeLeaf)]} ->
                         -- Return the left tree, and current node element as max.
                         -- If the left tree is non-leaf, then freeze the left edge.
                         ( left_tree
