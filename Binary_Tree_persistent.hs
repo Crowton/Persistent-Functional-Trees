@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Binary_Tree_persistent where
 
@@ -30,8 +31,7 @@ insert e partialTree =
     let current_time = time partialTree in
     
     -- Function to insert tree, and label time on edges
-    let --inner_insert :: TimeTree s -> (TimeTree s, Bool)
-        inner_insert tree
+    let inner_insert tree
             = case tree of
                 -- Empty node is where the element is to be inserted.
                 -- Create new node, with two leaf children, recording the current time.
@@ -118,8 +118,7 @@ delete e partialTree =
 
     -- Function to extract maximum element from tree
     -- Return tuple of new tree, maybe max element and new edges for the freezer
-    let --extract_max :: TimeTree s -> (TimeTree s, Maybe s, [TimeEdge])
-        extract_max tree
+    let extract_max tree
             = case tree of
                 -- If the tree is empty, then there is no maximum element to return and no edges to place in the freezer.
                 TimeLeaf -> 

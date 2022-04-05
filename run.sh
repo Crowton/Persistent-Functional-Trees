@@ -6,7 +6,12 @@ set -e
 # ghc Query.hs -o Query
 # ./Query
 
-ghc Main.hs -o Main
+# -odir -hidir   (Set out for .o and .hi files)
+# -fhpc          (Generate .tix with code coverage counters)
+
+# -O2 -fno-full-laziness
+
+ghc Main.hs -o Main -odir out -hidir out
 ./Main
 
 # ghc Binary_Tree_mock.hs -o Binary_Tree_mock

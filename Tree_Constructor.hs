@@ -6,19 +6,18 @@ import DataRecords as D
 import qualified Data.List as L
 import qualified Data.Map.Strict as MB
 
-import Debug.Trace
 
 construct :: Show s => Int -> MB.Map Int (Maybe (FrozenNode s)) -> Int -> Tree s
 construct fieldCount rootMap time =
     let root = case MB.lookupLE time rootMap of
-            Nothing -> error ("No root at time " ++ (show time) ++ "!")
+            Nothing -> error ("No root at time " ++ show time ++ "!")
             Just (_, root) -> root
     in
-    
+
     let gen frozenTree
             = case frozenTree of
                 Nothing -> Leaf
-                Just (FrozenNode {staticInformation=staticInformation, fields=fields}) ->
+                Just FrozenNode {staticInformation=staticInformation, fields=fields} ->
                     let children
                             = map (\fieldNum ->
                                     let validEdges
@@ -31,7 +30,7 @@ construct fieldCount rootMap time =
                                         [] -> gen Nothing
                                         [FrozenEdge {node_to=node_to}] ->
                                             gen (Just node_to)
-                                        _ -> error ("Multiple valid edges at time " ++ (show time) ++ "!")
+                                        _ -> error ("Multiple valid edges at time " ++ show time ++ "!")
                             ) [0 .. (fieldCount - 1)]
                     in
                     Node {
@@ -39,5 +38,5 @@ construct fieldCount rootMap time =
                         children = children
                     }
     in
-    
+
     gen root
