@@ -13,6 +13,7 @@ import Binary_Tree_persistent as PER
 import DAG_construction
 
 import Data.List
+import Debug.Trace
 
 
 rolls :: RandomGen b => Int -> b -> [Int]
@@ -79,6 +80,9 @@ binary_tree_test_delete num =
 
     -- Check equality
     all (\(test_time, temporal_tree) ->
+            (if temporal_tree /= build_persistent_tree test_time
+                    then trace ("Fails at time: " ++ show test_time)
+                    else id) $
             temporal_tree == build_persistent_tree test_time
     ) (zip [check_time_from .. check_time_from + num] (reverse temporal_list))
 
@@ -86,8 +90,8 @@ binary_tree_test_delete num =
 -- Tree contains long left path, one path to the right, and another left path
 -- By deleting the element to the right repeatly, the parent gets high out degree,
 -- which the dag construction then needs to make smaller
-binary_tree_high_time_out_degree_node :: Int -> Bool
-binary_tree_high_time_out_degree_node num =
+binary_tree_high_time_out_degree_node :: (PartialTree Int -> Int -> Tree Int) -> Int -> Bool
+binary_tree_high_time_out_degree_node builder num =
     let first_path = reverse [num + 2 .. 2 * num] ++ [1] in
     let second_path = reverse [2 .. num + 1] in
 
@@ -110,7 +114,9 @@ binary_tree_high_time_out_degree_node num =
     in
 
     -- Build tree
-    let build_persistent_tree = build persistent_tree in
+    -- let build_persistent_tree = build persistent_tree in
+    -- let build_persistent_tree = build_node_split persistent_tree in
+    let build_persistent_tree = builder persistent_tree in
 
     -- Fetch time before the first deletion
     let check_time_from = time persistent_base - 1 in

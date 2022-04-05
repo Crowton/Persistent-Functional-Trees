@@ -29,7 +29,7 @@ run_tests = do
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
-
+    
 
     -- Deletion unbalanced binary tree
     putStr "Deletion test .......... "
@@ -42,14 +42,23 @@ run_tests = do
 
 
     -- Deletion unbalanced binary tree
-    putStr "Node splitting test .... "
+    let size = 1000
+    
+    putStr "Node non splitting test .... "
     hFlush stdout
 
-    let binary_split_success = binary_tree_high_time_out_degree_node 100
+    let binary_split_success = binary_tree_high_time_out_degree_node build_non_split size
     if binary_split_success
         then putStrLn "Success"
         else error "Test failed!"
+    
+    putStr "Node splitting test .... "
+    hFlush stdout
 
+    let binary_split_success = binary_tree_high_time_out_degree_node build size
+    if binary_split_success
+        then putStrLn "Success"
+        else error "Test failed!"
 
 
 main = do
@@ -74,13 +83,13 @@ main = do
 
     let build_tree = build persistent_tree
 
-    putStrLn ("Time 0:\n" ++ pretty_tree (build_tree 0) ++ "\n")
-    putStrLn ("Time 1:\n" ++ pretty_tree (build_tree 1) ++ "\n")
-    putStrLn ("Time 2:\n" ++ pretty_tree (build_tree 2) ++ "\n")
-    putStrLn ("Time 3:\n" ++ pretty_tree (build_tree 3) ++ "\n")
-    putStrLn ("Time 4:\n" ++ pretty_tree (build_tree 4) ++ "\n")
-    putStrLn ("Time 5:\n" ++ pretty_tree (build_tree 5) ++ "\n")
-    putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
-    putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
+    -- putStrLn ("Time 0:\n" ++ pretty_tree (build_tree 0) ++ "\n")
+    -- putStrLn ("Time 1:\n" ++ pretty_tree (build_tree 1) ++ "\n")
+    -- putStrLn ("Time 2:\n" ++ pretty_tree (build_tree 2) ++ "\n")
+    -- putStrLn ("Time 3:\n" ++ pretty_tree (build_tree 3) ++ "\n")
+    -- putStrLn ("Time 4:\n" ++ pretty_tree (build_tree 4) ++ "\n")
+    -- putStrLn ("Time 5:\n" ++ pretty_tree (build_tree 5) ++ "\n")
+    -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
+    -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
 
-    -- run_tests
+    run_tests
