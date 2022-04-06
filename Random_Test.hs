@@ -20,20 +20,22 @@ rolls :: RandomGen b => Int -> b -> [Int]
 rolls n = take n . unfoldr (Just . uniformR (0, 2 * n))
 
 
-binary_tree_test_insert :: Int -> Bool
-binary_tree_test_insert num =
-    let seed = 42 in
+
+build_binary_tree :: Int -> Int -> ([Tree Int], PartialTree Int)
+build_binary_tree num seed =
     let pureGen = mkStdGen seed in
     let random_elements = rolls num pureGen in
 
-    let (temporal_list, persistent_tree) =
-            foldl (\(tem_h : tem_t, per) element ->
-                    let next_tem = TEM.insert element tem_h in
-                    let next_per = PER.insert element per in
-                    (next_tem : tem_h : tem_t, next_per)
-            ) ([Leaf], PER.construct_empty_tree) random_elements
-    in
+    foldl (\(tem_h : tem_t, per) element ->
+            let next_tem = TEM.insert element tem_h in
+            let next_per = PER.insert element per in
+            (next_tem : tem_h : tem_t, next_per)
+    ) ([Leaf], PER.construct_empty_tree) random_elements
 
+
+binary_tree_test_insert :: Int -> Bool
+binary_tree_test_insert num =
+    let (temporal_list, persistent_tree) = build_binary_tree num 42 in
     let build_persistent_tree = build persistent_tree in
 
     all (\(test_time, temporal_tree) ->

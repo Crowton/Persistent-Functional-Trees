@@ -16,9 +16,13 @@ import Random_Test
 
 import Prettify
 
+import GHC.DataSize
+import Control.Arrow
+import Control.Monad
 
 
-run_tests = do
+
+correctness_test = do
     putStrLn "Running tests"
 
     -- Insertion unbalanced binary tree
@@ -61,6 +65,39 @@ run_tests = do
         else error "Test failed!"
 
 
+size_test = do
+    let size_start = 10
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 1000
+
+    let seed_start = 0
+    let seed_end = 10
+
+    putStrLn "n,tem,per"
+
+    let size_loop size = do
+        let seed_loop seed = do
+            let (tem, per) = build_binary_tree size seed
+            let per_root_list = build_root_list per
+
+            tem_size <- recursiveSizeNF tem
+            per_size <- recursiveSizeNF per_root_list
+
+            putStrLn (show size ++ "," ++ show tem_size ++ "," ++ show per_size)
+
+            when (seed < seed_end) (seed_loop (seed + 1))
+        
+        seed_loop seed_start
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
+    -- print ("Tem size: " ++ show tem_size ++ " bytes")
+    -- print ("Per size: " ++ show per_size ++ " bytes")
+
+
+
 main = do
     let tree = Leaf
                 & TEM.insert 3
@@ -92,4 +129,5 @@ main = do
     -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
     -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
 
-    run_tests
+    correctness_test
+    -- size_test

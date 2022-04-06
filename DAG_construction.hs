@@ -20,8 +20,9 @@ import Tree_Constructor as T
 
 -- Fields are integers in the range [0 .. d-1]
 
-build :: Show s => PartialTree s -> (Int -> Tree s)
-build partialTree =
+
+build_root_list :: PartialTree s -> [(Int, Maybe (FrozenNode s))]
+build_root_list partialTree =
     -- Extract all edges in current tree
     let finish_time = time partialTree in
     let treeEdgeExtract !tree !edgeList = case tree of
@@ -151,16 +152,18 @@ build partialTree =
 
     -- Create rootmap
     let newRootList = (finish_time, -1) : rootList partialTree in
-    let rootNodeList
-            = concatMap (\(t, r) ->
-                            if r == -1
-                                then [(t, Nothing)]
-                                else idToNode MH.! r
-                                     & MB.toList
-                                     & foldl (\(from_time, acc) (to_time, node) -> (to_time, (from_time, Just node) : acc)) (t, [])
-                                     & snd
-            ) newRootList
-    in
+    concatMap (\(t, r) ->
+                if r == -1
+                    then [(t, Nothing)]
+                    else idToNode MH.! r
+                            & MB.toList
+                            & foldl (\(from_time, acc) (to_time, node) -> (to_time, (from_time, Just node) : acc)) (t, [])
+                            & snd
+              ) newRootList
+
+build :: Show s => PartialTree s -> (Int -> Tree s)
+build partialTree =
+    let rootNodeList = build_root_list partialTree in
 
     -- Create root map
     let !rootMap = MB.fromDistinctDescList rootNodeList in

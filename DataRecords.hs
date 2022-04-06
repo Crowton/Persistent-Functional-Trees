@@ -1,5 +1,10 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
 module DataRecords where
+
+
+import GHC.Generics (Generic)
+import Control.DeepSeq
 
 
 -- Update structure
@@ -41,7 +46,7 @@ data FrozenNode staticType = FrozenNode
     { staticInformation :: staticType
     , fields :: [FrozenEdge staticType]
     }
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 data FrozenEdge staticType = FrozenEdge
     { field_from :: Int
@@ -49,7 +54,7 @@ data FrozenEdge staticType = FrozenEdge
     , frozen_time_from :: Int
     , frozen_time_to :: Int
     }
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 
 -- Nodes exposed to user under update and query
@@ -60,4 +65,4 @@ data Tree t
         { elm :: t
         , children :: [Tree t]
         }
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic, NFData)
