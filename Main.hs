@@ -1,5 +1,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use camelCase" #-}
+{-# LANGUAGE BangPatterns #-}
+
 module Main where
 
 import Data.Function
@@ -20,6 +22,13 @@ import GHC.DataSize
 import Control.Arrow
 import Control.Monad
 
+import Control.DeepSeq
+
+import Control.Exception
+-- import Formatting as F
+import Formatting.Clock
+import System.Clock
+
 
 
 correctness_test = do
@@ -33,7 +42,7 @@ correctness_test = do
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
-    
+
 
     -- Deletion unbalanced binary tree
     putStr "Deletion test .......... "
@@ -47,7 +56,7 @@ correctness_test = do
 
     -- Deletion unbalanced binary tree
     let size = 1000
-    
+
     putStr "Node non splitting test .... "
     hFlush stdout
 
@@ -55,7 +64,7 @@ correctness_test = do
     if binary_split_success
         then putStrLn "Success"
         else error "Test failed!"
-    
+
     putStr "Node splitting test .... "
     hFlush stdout
 
@@ -65,28 +74,82 @@ correctness_test = do
         else error "Test failed!"
 
 
-size_test = do
+temporal_tree_node_size_test = do
+    let tree_0 = Leaf :: Tree Int
+    let tree_1
+            = tree_0
+            & TEM.insert 1
+
+    size_0 <- recursiveSizeNF tree_0
+    size_1 <- recursiveSizeNF tree_1
+
+    putStrLn ("Size of leaf: " ++ show size_0)
+    putStrLn ("Delta size of single insert (0 -> 1): " ++ show (size_1 - size_0))
+
+    let tree_2
+            = tree_1
+            & TEM.insert 2
+
+    size_2 <- recursiveSizeNF tree_2
+
+    putStrLn ("Delta size of single insert (1 -> 2): " ++ show (size_2 - size_1))
+
+    let tree_7
+            = tree_0
+            & TEM.insert 4
+            & TEM.insert 2
+            & TEM.insert 6
+            & TEM.insert 1
+            & TEM.insert 3
+            & TEM.insert 5
+            & TEM.insert 7
+    let tree_8
+            = tree_7
+            & TEM.insert 8
+
+    size_7 <- recursiveSizeNF tree_7
+    size_8 <- recursiveSizeNF tree_8
+
+    putStrLn ("Delta size of single insert (7 -> 8): " ++ show (size_8 - size_7))
+
+    let tree_9
+            = tree_8
+            & TEM.insert 0
+
+    size_9 <- recursiveSizeNF tree_9
+
+    putStrLn ("Delta size of single insert (8 -> 9): " ++ show (size_9 - size_8))
+
+    putStrLn ("Size of tree 0: " ++ show size_0)
+    putStrLn ("Size of tree 1: " ++ show size_1)
+    putStrLn ("Size of tree 2: " ++ show size_2)
+    putStrLn ("Size of tree 7: " ++ show size_7)
+    putStrLn ("Size of tree 8: " ++ show size_8)
+    putStrLn ("Size of tree 9: " ++ show size_9)
+
+
+insertion_size_test builder = do
     let size_start = 10
     let size_incr_mul = 1.3 :: Float
     let size_end = 1000
 
     let seed_start = 0
-    let seed_end = 10
+    let seed_end = 30
 
-    putStrLn "n,tem,per"
+    putStrLn "seed,n,tem,per"
 
     let size_loop size = do
         let seed_loop seed = do
-            let (tem, per) = build_binary_tree size seed
+            let (tem, per) = builder size seed
             let per_root_list = build_root_list per
 
             tem_size <- recursiveSizeNF tem
             per_size <- recursiveSizeNF per_root_list
 
-            putStrLn (show size ++ "," ++ show tem_size ++ "," ++ show per_size)
+            putStrLn (show seed ++ "," ++ show size ++ "," ++ show tem_size ++ "," ++ show per_size)
 
-            when (seed < seed_end) (seed_loop (seed + 1))
-        
+            when (seed < seed_end - 1) (seed_loop (seed + 1))
+
         seed_loop seed_start
 
         when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
@@ -96,6 +159,95 @@ size_test = do
     -- print ("Tem size: " ++ show tem_size ++ " bytes")
     -- print ("Per size: " ++ show per_size ++ " bytes")
 
+
+sanity_size_test = do
+    -- let l = [] :: [Int]
+    -- let l = [1::Int .. 100::Int]
+    -- print (force l)
+    -- size <- recursiveSize l
+    -- size <- recursiveSizeNF l
+    -- putStrLn (show size)
+
+    let l = [] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1, 2] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1, 2, 3] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1, 2, 3, 4] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1, 2, 3, 4, 5] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1, 2, 3, 4, 5, 6] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1, 2, 3, 4, 5, 6, 7] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1, 2, 3, 4, 5, 6, 7, 8] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+    let l = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] :: [Int]
+    size <- recursiveSizeNF l
+    putStrLn (show size)
+
+
+    -- int_size <- recursiveSizeNF (1 :: Int)
+    -- putStrLn (show int_size)
+
+    -- int_size <- recursiveSizeNF (2147483647 :: Int)
+    -- putStrLn (show int_size)
+
+    -- int_size <- recursiveSizeNF (9223372036854775807 :: Int)
+    -- putStrLn (show int_size)
+
+    -- int_size <- recursiveSizeNF (9223372036854775807 :: Int)
+    -- putStrLn (show int_size)
+
+
+speed_test = do
+    let (tem, per) = build_binary_tree_without_duplicates 100000 10
+    let !per_f = force per
+
+    start <- getTime ProcessCPUTime
+    let per_root_list = build_root_list per_f
+    let !_ = force per_root_list
+
+    end <- getTime ProcessCPUTime
+    -- fprint (timeSpecs % "\n") start end
+
+    print (end - start)
+
+
+    -- start_time <- getSystemTime
+
+    -- let (tem, per) = build_binary_tree_without_duplicates 1000 10
+    -- let per_root_list = build_root_list per
+
+    -- end_time <- getSystemTime
+
+    -- print (end_time - start_time)
 
 
 main = do
@@ -129,5 +281,12 @@ main = do
     -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
     -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
 
-    correctness_test
-    -- size_test
+    -- correctness_test
+    -- speed_test
+    -- sanity_size_test
+    -- temporal_tree_node_size_test
+    insertion_size_test build_binary_tree_without_duplicates
+
+    -- let (tem, per) = build_binary_tree_without_duplicates 10 1
+    -- let tree_10 : tem_rest = tem
+    -- putStrLn (pretty_tree tree_10)

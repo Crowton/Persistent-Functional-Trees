@@ -16,7 +16,7 @@ data TimeEdge = TimeEdge
     , time_from :: Int
     , time_to :: Int
     }
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 data TimeTree s
     = TimeLeaf
@@ -25,7 +25,7 @@ data TimeTree s
         , t_id :: Int
         , t_fields :: [(Int, TimeTree s)] -- (Exists from time, nodeto)
         }
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 -- TODO: add dynamic information
 data PartialTree s = PartialTree
@@ -37,7 +37,7 @@ data PartialTree s = PartialTree
     , time :: Int
     , currentTree :: TimeTree s
     }
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 
 -- Nodes used in DAG
