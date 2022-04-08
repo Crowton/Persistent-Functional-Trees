@@ -37,32 +37,42 @@ def plot_deletion_experiment():
     with open("size_experiments_worst_case_deletions_large.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
 
-    # c = 100000
-    # data_per = [(3 * n, per / (3 * n + c)) for n, per in data]
+    data_per = [(3 * n, per) for n, per in data]
+    data_per_div_update = [(3 * n, per / (3 * n)) for n, per in data]
 
-    a, b = 159.98040958, -567.82009912
+    x, y = zip(*data_per)
+    coef = np.polyfit(x, y, 1)
+    print("Fitted coefficients:", coef)
 
-    data_per = [(3 * n, per / (3*n + b / a)) for n, per in data]
+    y_bar = np.mean(y)
+    ss_res = np.sum((y - np.polyval(coef, x)) ** 2)
+    ss_tot = np.sum((y - y_bar) ** 2)
+    r_2 = 1 - ss_res / ss_tot
+    print("R^2 value:", r_2)
 
-    # x, y = zip(*data_per)
-    # coef = np.polyfit(x, y, 1)
-    # x_values = np.linspace(min(x), max(x), 10000)
-    # y_values = np.polyval(coef, x_values)
-    # plt.plot(x_values, y_values, "r-")
-
-    # print(coef)
-
-    # y_bar = np.mean(y)
-    # ss_res = np.sum((y - np.polyval(coef, x)) ** 2)
-    # ss_tot = np.sum((y - y_bar) ** 2)
-    # r_2 = 1 - ss_res / ss_tot
-    # print(r_2)
-
-    plt.plot(*zip(*data_per), "o:", label="Persistent size")
+    plt.plot(*zip(*data_per_div_update), "o:", label="Persistent size")
 
     plt.title("Node Splitting Space Experiment\nWith $2n$ Worst case Insertions and $n$ Deletions")
     plt.xlabel("Number of Updates")
     plt.ylabel("Space usage (bytes) / Updates")
+
+    plt.xscale("log")
+
+    plt.legend()
+    plt.show()
+
+
+    a, b = coef
+    data_per_div_line = [(3 * n, per / (3 * n + b / a)) for n, per in data]
+    x_values = np.linspace(min(x), max(x), 10000)
+    y_values = np.polyval(coef, x_values)
+    plt.plot(x_values, y_values / (x_values + b / a), "r-", label="Fitted line")
+
+    plt.plot(*zip(*data_per_div_line), "o:", label="Persistent size")
+
+    plt.title("Node Splitting Space Experiment\nWith $2n$ Worst case Insertions and $n$ Deletions")
+    plt.xlabel("Number of Updates")
+    plt.ylabel("Space usage (bytes) / (Updates + c)")
 
     plt.xscale("log")
 

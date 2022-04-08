@@ -29,6 +29,8 @@ import Control.Exception
 import Formatting.Clock
 import System.Clock
 
+import System.Random
+
 
 
 correctness_test = do
@@ -250,23 +252,54 @@ speed_test = do
     let !per_f = force per
 
     start <- getTime ProcessCPUTime
+
     let per_root_list = build_root_list per_f
     let !_ = force per_root_list
 
     end <- getTime ProcessCPUTime
-    -- fprint (timeSpecs % "\n") start end
-
     print (end - start)
 
 
-    -- start_time <- getSystemTime
+update_insert_runtime_test = do
+    let num = 1000
+    let seed = 0
 
-    -- let (tem, per) = build_binary_tree_without_duplicates 1000 10
-    -- let per_root_list = build_root_list per
+    let repeats = 10000000
 
-    -- end_time <- getSystemTime
+    putStrLn ("repeats," ++ show repeats)
+    putStrLn "n,tem,per"
+    let loop n elements tem per = do
+            let h = head elements
 
-    -- print (end_time - start_time)
+            let !tem_f = force tem
+
+            start_tem <- getTime ProcessCPUTime
+            let tem_loop itr = do
+                let !new_tem = force (TEM.insert h tem_f)
+                let itr' = itr + 1
+                when (itr' < repeats) (tem_loop itr')
+            tem_loop 0
+            end_tem <- getTime ProcessCPUTime
+
+            let !per_f = force per
+
+            start_per <- getTime ProcessCPUTime
+            let per_loop itr = do
+                let !new_per = force (PER.insert h per_f)
+                let itr' = itr + 1
+                when (itr' < repeats) (per_loop itr')
+            per_loop 0
+            end_per <- getTime ProcessCPUTime
+
+            putStrLn (show n ++ "," ++ show (toNanoSecs (end_tem - start_tem)) ++ "," ++ show (toNanoSecs (end_per - start_per)))
+            hFlush stdout
+
+            when ((tail elements) /= []) (loop (n + 1) (tail elements) (TEM.insert h tem_f) (PER.insert h per_f))
+    
+    
+    let pureGen = mkStdGen seed
+    let random_permutation = random_shuffle num pureGen
+    loop 0 random_permutation Leaf PER.construct_empty_tree
 
 
 main = do
@@ -305,7 +338,9 @@ main = do
     -- sanity_size_test
     -- temporal_tree_node_size_test
     -- insertion_size_test build_binary_tree_without_duplicates
-    deletion_size_test
+    -- deletion_size_test
+
+    update_insert_runtime_test
 
     -- let (tem, per) = build_binary_tree_without_duplicates 10 1
     -- let tree_10 : tem_rest = tem
