@@ -21,11 +21,14 @@ import Tree_Constructor as T
 -- Fields are integers in the range [0 .. d-1]
 
 
+-- Function to build the root list with node splits
 build_root_list :: PartialTree s -> [(Int, Maybe (FrozenNode s))]
 build_root_list partialTree =
     -- Extract all edges in current tree
     let finish_time = time partialTree in
-    let treeEdgeExtract !tree !edgeList = case tree of
+    
+
+    let treeEdgeExtract tree edgeList = case tree of
             TimeLeaf -> edgeList
             TimeNode {t_id=t_id_from, t_fields=children_fields} ->
                 fst (foldl (\(edgeList', field_num) (e_time_from, child) ->
@@ -71,7 +74,7 @@ build_root_list partialTree =
     let init_zeroOutDegree = filter (\i -> not (MH.member i init_outDegree)) [0 .. idCount partialTree - 1] in
 
     -- Function to create DAG, by processing nodes of zero out degree
-    let innerRec !zeroOutDegree !outDegree !idToInstance = case zeroOutDegree of
+    let innerRec zeroOutDegree outDegree idToInstance = case zeroOutDegree of
             [] -> idToInstance
             id_h : ids ->
                 -- Create sorted list of outgoing edges, sorted on the time the edge starts existing
@@ -127,7 +130,7 @@ build_root_list partialTree =
                         ) (MB.empty, MH.empty, []) outgoing_edges
                 in
 
-                let !last_time_to_instance
+                let last_time_to_instance
                         = case (outgoing_edges, free_edges) of
                             ([], _) -> extend
                             (_, _ : _) -> extend
@@ -137,7 +140,7 @@ build_root_list partialTree =
                                 MB.insert finish_time time_node time_to_instance
                 in
 
-                let !new_idToInstance = MH.insert id_h last_time_to_instance idToInstance in
+                let new_idToInstance = MH.insert id_h last_time_to_instance idToInstance in
 
                 -- Update out degree of parents
                 let parents = MH.findWithDefault [] id_h backwards in
@@ -161,21 +164,25 @@ build_root_list partialTree =
                             & snd
               ) newRootList
 
+
+-- Function to build the tree with node splits
 build :: Show s => PartialTree s -> (Int -> Tree s)
 build partialTree =
     let rootNodeList = build_root_list partialTree in
 
     -- Create root map
-    let !rootMap = MB.fromDistinctDescList rootNodeList in
+    let rootMap = MB.fromDistinctDescList rootNodeList in
 
     -- Return tree constructor
     T.construct (fieldCount partialTree) rootMap
 
+
+-- Function to build the tree without node splits
 build_non_split :: Show s => PartialTree s -> (Int -> Tree s)
 build_non_split partialTree =
     -- Extract all edges in current tree
     let finish_time = time partialTree in
-    let treeEdgeExtract !tree !edgeList = case tree of
+    let treeEdgeExtract tree edgeList = case tree of
             TimeLeaf -> edgeList
             TimeNode {t_id=t_id_from, t_fields=children_fields} ->
                 fst (foldl (\(edgeList', field_num) (e_time_from, child) ->
@@ -222,7 +229,7 @@ build_non_split partialTree =
     let init_zeroOutDegree = filter (\i -> not (MH.member i init_outDegree)) [0 .. (idCount partialTree) - 1] in
 
     -- Function to create DAG, by processing nodes of zero out degree
-    let innerRec !zeroOutDegree !outDegree !idToInstance = case zeroOutDegree of
+    let innerRec zeroOutDegree outDegree idToInstance = case zeroOutDegree of
             [] -> idToInstance
             id_h : ids ->
                 let node_fields
@@ -249,7 +256,7 @@ build_non_split partialTree =
     let rootNodeList = map (\(t, r) -> (t, if r == -1 then Nothing else Just (idToNode MH.! r))) newRootList in
 
     -- Create root map
-    let !rootMap = MB.fromDistinctDescList rootNodeList in
+    let rootMap = MB.fromDistinctDescList rootNodeList in
 
     -- Return tree constructor
     T.construct (fieldCount partialTree) rootMap

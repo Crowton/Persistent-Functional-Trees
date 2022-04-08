@@ -48,6 +48,27 @@ build_binary_tree_without_duplicates num seed =
     build_binary_tree random_permutation
 
 
+build_binary_persistent_tree_high_out_degree :: Int -> PartialTree Int
+build_binary_persistent_tree_high_out_degree num =
+    let first_path = reverse [num + 2 .. 2 * num] ++ [1] in
+    let second_path = reverse [2 .. num + 1] in
+
+    -- Build initial tree, using insertion
+    let persistent_base =
+            foldl (\per element ->
+                    PER.insert element per
+            ) PER.construct_empty_tree (first_path ++ second_path)
+    in
+
+    -- Make deletion of the second path
+    let persistent_tree =
+            foldl (\per element ->
+                    PER.delete element per
+            ) persistent_base second_path
+    in
+
+    persistent_tree
+
 
 binary_tree_test_insert :: Int -> Bool
 binary_tree_test_insert num =

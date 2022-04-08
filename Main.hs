@@ -147,6 +147,7 @@ insertion_size_test builder = do
             per_size <- recursiveSizeNF per_root_list
 
             putStrLn (show seed ++ "," ++ show size ++ "," ++ show tem_size ++ "," ++ show per_size)
+            hFlush stdout
 
             when (seed < seed_end - 1) (seed_loop (seed + 1))
 
@@ -156,8 +157,26 @@ insertion_size_test builder = do
 
     size_loop size_start
 
-    -- print ("Tem size: " ++ show tem_size ++ " bytes")
-    -- print ("Per size: " ++ show per_size ++ " bytes")
+
+deletion_size_test = do
+    let size_start = 10
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 4000
+
+    putStrLn "n,per"
+
+    let size_loop size = do
+        let per = build_binary_persistent_tree_high_out_degree size
+        let per_root_list = build_root_list per
+
+        per_size <- recursiveSizeNF per_root_list
+
+        putStrLn (show size ++ "," ++ show per_size)
+        hFlush stdout
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
 
 
 sanity_size_test = do
@@ -285,7 +304,8 @@ main = do
     -- speed_test
     -- sanity_size_test
     -- temporal_tree_node_size_test
-    insertion_size_test build_binary_tree_without_duplicates
+    -- insertion_size_test build_binary_tree_without_duplicates
+    deletion_size_test
 
     -- let (tem, per) = build_binary_tree_without_duplicates 10 1
     -- let tree_10 : tem_rest = tem
