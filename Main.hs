@@ -165,15 +165,15 @@ deletion_size_test = do
     let size_incr_mul = 1.3 :: Float
     let size_end = 4000
 
-    putStrLn "n,per"
+    putStrLn "n,per,splits"
 
     let size_loop size = do
         let per = build_binary_persistent_tree_high_out_degree size
-        let per_root_list = build_root_list per
+        let (per_root_list, node_splits) = build_root_list per
 
         per_size <- recursiveSizeNF per_root_list
 
-        putStrLn (show size ++ "," ++ show per_size)
+        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show node_splits)
         hFlush stdout
 
         when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
@@ -295,11 +295,49 @@ update_insert_runtime_test = do
             hFlush stdout
 
             when ((tail elements) /= []) (loop (n + 1) (tail elements) (TEM.insert h tem_f) (PER.insert h per_f))
-    
-    
+
+
     let pureGen = mkStdGen seed
     let random_permutation = random_shuffle num pureGen
     loop 0 random_permutation Leaf PER.construct_empty_tree
+
+
+update_insert_total_runtime_test = do
+    let size_start = 10000
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 1000000
+
+    let seed_start = 0
+    let seed_end = 30
+
+    putStrLn "seed,n,tem,per"
+
+    let size_loop size = do
+        let seed_loop seed = do
+            let pureGen = mkStdGen seed
+            let !random_permutation = random_shuffle size pureGen
+
+            start_tem <- getTime ProcessCPUTime
+            let tem = foldl (flip TEM.insert) Leaf random_permutation
+            let !tem_f = force tem
+            end_tem <- getTime ProcessCPUTime
+
+            start_per <- getTime ProcessCPUTime
+            let per = foldl (flip PER.insert) PER.construct_empty_tree random_permutation
+            let !per_f = force per
+            end_per <- getTime ProcessCPUTime
+
+            putStrLn (show seed ++ "," ++ show size ++ "," ++ show (toNanoSecs (end_tem - start_tem)) ++ "," ++ show (toNanoSecs (end_per - start_per)))
+            hFlush stdout
+
+            when (seed < seed_end - 1) (seed_loop (seed + 1))
+
+        seed_loop seed_start
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
 
 
 main = do
@@ -340,7 +378,8 @@ main = do
     -- insertion_size_test build_binary_tree_without_duplicates
     -- deletion_size_test
 
-    update_insert_runtime_test
+    -- update_insert_runtime_test
+    update_insert_total_runtime_test
 
     -- let (tem, per) = build_binary_tree_without_duplicates 10 1
     -- let tree_10 : tem_rest = tem

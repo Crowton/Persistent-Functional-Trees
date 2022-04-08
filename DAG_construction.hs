@@ -22,7 +22,8 @@ import Tree_Constructor as T
 
 
 -- Function to build the root list with node splits
-build_root_list :: PartialTree s -> [(Int, Maybe (FrozenNode s))]
+-- Also return the number of node splits
+build_root_list :: PartialTree s -> ([(Int, Maybe (FrozenNode s))], Int)
 build_root_list partialTree =
     -- Extract all edges in current tree
     let finish_time = time partialTree in
@@ -81,8 +82,8 @@ build_root_list partialTree =
     let init_zeroOutDegree = filter (\i -> not (MH.member i init_outDegree)) [0 .. idCount partialTree - 1] in
 
     -- Function to create DAG, by processing nodes of zero out degree
-    let innerRec zeroOutDegree outDegree idToInstance = case zeroOutDegree of
-            [] -> idToInstance
+    let innerRec node_splits zeroOutDegree outDegree idToInstance = case zeroOutDegree of
+            [] -> (idToInstance, node_splits)
             id_h : ids ->
                 -- Create sorted list of outgoing edges, sorted on the time the edge starts existing
                 let outgoing_edges
@@ -172,6 +173,9 @@ build_root_list partialTree =
                                 MB.insert finish_time time_node time_to_instance
                 in
                 
+                -- New node splits is the number of nodes created - 1
+                let new_node_splits = (MB.size last_time_to_instance) - 1 in
+
                 -- Update the idToInstance map with the intance map of the current node id
                 let new_idToInstance = MH.insert id_h last_time_to_instance idToInstance in
 
@@ -181,30 +185,32 @@ build_root_list partialTree =
                 let newZeroOut = filter (\p -> newOutDegree MH.! p == 0) parents in
                 
                 -- Recurse with the updated zero out degree and idToInstance
-                innerRec (newZeroOut ++ ids) newOutDegree new_idToInstance
+                innerRec (node_splits + new_node_splits) (newZeroOut ++ ids) newOutDegree new_idToInstance
     in
 
     -- Create id to instance
     -- Maps from id to map over node end time and instance
-    let idToNode = innerRec init_zeroOutDegree init_outDegree MH.empty in
+    let (idToNode, node_splits) = innerRec (0::Int) init_zeroOutDegree init_outDegree MH.empty in
 
     -- Create rootmap
     let newRootList = (finish_time, -1) : rootList partialTree in
-    concatMap (\(t, r) ->
-                if r == -1
-                    then [(t, Nothing)]
-                    else idToNode MH.! r
-                            & MB.toList
-                            & foldl (\(from_time, acc) (to_time, node) -> (to_time, (from_time, Just node) : acc)) (t, [])
-                            & snd
-              ) newRootList
+    ( concatMap (\(t, r) ->
+                    if r == -1
+                        then [(t, Nothing)]
+                        else idToNode MH.! r
+                                & MB.toList
+                                & foldl (\(from_time, acc) (to_time, node) -> (to_time, (from_time, Just node) : acc)) (t, [])
+                                & snd
+                ) newRootList
+    , node_splits
+    )
 
 
 -- Function to build the tree with node splits
 build :: Show s => PartialTree s -> (Int -> Tree s)
 build partialTree =
     -- Build root list with the above function
-    let rootNodeList = build_root_list partialTree in
+    let (rootNodeList, _) = build_root_list partialTree in
 
     -- Create root map
     let rootMap = MB.fromDistinctDescList rootNodeList in
