@@ -38,8 +38,8 @@ def plot_deletion_size():
     with open("size_experiments_worst_case_deletions_large.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
 
-    data_per = [(3 * n, per) for n, per in data]
-    data_per_div_update = [(3 * n, per / (3 * n)) for n, per in data]
+    data_per = [(3 * n + 2, per) for n, per in data]
+    data_per_div_update = [(n, per / n) for n, per in data_per]
 
     x, y = zip(*data_per)
     coef = np.polyfit(x, y, 1)
@@ -64,7 +64,7 @@ def plot_deletion_size():
 
 
     a, b = coef
-    data_per_div_line = [(3 * n, per / (3 * n + b / a)) for n, per in data]
+    data_per_div_line = [(n, per / (n + b / a)) for n, per in data_per]
     x_values = np.linspace(min(x), max(x), 10000)
     y_values = np.polyval(coef, x_values)
     plt.plot(x_values, y_values / (x_values + b / a), "r-", label="Fitted line")
@@ -82,10 +82,11 @@ def plot_deletion_size():
 
 
 def plot_deletion_size_with_node_splits():
-    with open("size_experiments_worst_case_deletions_large_with_node_split_count.csv") as f:
+    # with open("size_experiments_worst_case_deletions_large_with_node_split_count.csv") as f:
+    with open("worst_case_delete_size_range.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
 
-    data_split = [(3 * n, splits / (3 * n)) for n, _, splits in data]
+    data_split = [(3 * n + 2, splits / (3 * n + 2)) for n, _, splits in data]
 
     plt.plot(*zip(*data_split), "o:")
 
@@ -129,5 +130,5 @@ def plot_update_runtime():
 if __name__ == "__main__":
     # plot_insertion_size()
     # plot_deletion_size()
-    # plot_deletion_size_with_node_splits()
-    plot_update_runtime()
+    plot_deletion_size_with_node_splits()
+    # plot_update_runtime()

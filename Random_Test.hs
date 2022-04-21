@@ -50,7 +50,7 @@ build_binary_tree_without_duplicates num seed =
 
 build_binary_persistent_tree_high_out_degree :: Int -> PartialTree Int
 build_binary_persistent_tree_high_out_degree num =
-    let first_path = reverse [num + 2 .. 2 * num] ++ [1] in
+    let first_path = (reverse [num + 2, num + 4 .. 3 * num]) ++ [1] ++ [num + 3, num + 5 .. 3 * num + 1] ++ [0] in
     let second_path = reverse [2 .. num + 1] in
 
     -- Build initial tree, using insertion

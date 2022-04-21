@@ -181,6 +181,26 @@ deletion_size_test = do
     size_loop size_start
 
 
+deletion_size_range_test = do
+    let size_start = 1
+    let size_end = 1000
+
+    putStrLn "n,per,splits"
+
+    let size_loop size = do
+        let per = build_binary_persistent_tree_high_out_degree size
+        let (per_root_list, node_splits) = build_root_list per
+
+        per_size <- recursiveSizeNF per_root_list
+
+        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show node_splits)
+        hFlush stdout
+
+        when (size < size_end) (size_loop (size + 1))
+
+    size_loop size_start
+
+
 sanity_size_test = do
     -- let l = [] :: [Int]
     -- let l = [1::Int .. 100::Int]
@@ -376,10 +396,11 @@ main = do
     -- sanity_size_test
     -- temporal_tree_node_size_test
     -- insertion_size_test build_binary_tree_without_duplicates
-    -- deletion_size_test
+    deletion_size_test
+    -- deletion_size_range_test
 
     -- update_insert_runtime_test
-    update_insert_total_runtime_test
+    -- update_insert_total_runtime_test
 
     -- let (tem, per) = build_binary_tree_without_duplicates 10 1
     -- let tree_10 : tem_rest = tem
