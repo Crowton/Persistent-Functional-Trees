@@ -26,13 +26,39 @@ random_shuffle :: RandomGen b => Int -> b -> [Int]
 random_shuffle n = shuffle' [1 .. n] n
 
 
-build_binary_tree :: [Int] -> ([Tree Int], PartialTree Int)
-build_binary_tree =
+-- TODO: Refractor this to be readable
+-- and aboid this much code duplication
+-- Maybe move mock code away, and overwrite? let git handle it?
+build_mock_binary_tree :: [Int] -> ([Tree Int], PartialTree Int)
+build_mock_binary_tree =
     foldl (\(tem_h : tem_t, per) element ->
             let next_tem = TEM.insert element tem_h in
             let next_per = PER_M.insert element per in
             (next_tem : tem_h : tem_t, next_per)
     ) ([Leaf], PER_M.construct_empty_tree)
+
+
+build_mock_binary_tree_with_duplicates :: Int -> Int -> ([Tree Int], PartialTree Int)
+build_mock_binary_tree_with_duplicates num seed =
+    let pureGen = mkStdGen seed in
+    let random_elements = rolls num pureGen in
+    build_mock_binary_tree random_elements
+
+build_mock_binary_tree_without_duplicates :: Int -> Int -> ([Tree Int], PartialTree Int)
+build_mock_binary_tree_without_duplicates num seed =
+    let pureGen = mkStdGen seed in
+    let random_permutation = random_shuffle num pureGen in
+    build_mock_binary_tree random_permutation
+
+
+
+build_binary_tree :: [Int] -> ([Tree Int], PartialTree Int)
+build_binary_tree =
+    foldl (\(tem_h : tem_t, per) element ->
+            let next_tem = TEM.insert element tem_h in
+            let next_per = PER.insert element per in
+            (next_tem : tem_h : tem_t, next_per)
+    ) ([Leaf], PER.empty)
 
 
 build_binary_tree_with_duplicates :: Int -> Int -> ([Tree Int], PartialTree Int)
@@ -42,15 +68,10 @@ build_binary_tree_with_duplicates num seed =
     build_binary_tree random_elements
 
 
-build_binary_tree_without_duplicates :: Int -> Int -> ([Tree Int], PartialTree Int)
-build_binary_tree_without_duplicates num seed =
-    let pureGen = mkStdGen seed in
-    let random_permutation = random_shuffle num pureGen in
-    build_binary_tree random_permutation
 
 
-build_binary_persistent_tree_high_out_degree :: Int -> PartialTree Int
-build_binary_persistent_tree_high_out_degree num =
+build_mock_binary_persistent_tree_high_out_degree :: Int -> PartialTree Int
+build_mock_binary_persistent_tree_high_out_degree num =
     let first_path = (reverse [num + 2, num + 4 .. 3 * num]) ++ [1] ++ [num + 3, num + 5 .. 3 * num + 1] ++ [0] in
     let second_path = reverse [2 .. num + 1] in
 
@@ -71,6 +92,16 @@ build_binary_persistent_tree_high_out_degree num =
     persistent_tree
 
 
+binary_tree_test_mock_insert :: Int -> Bool
+binary_tree_test_mock_insert num =
+    let (temporal_list, persistent_tree) = build_mock_binary_tree_with_duplicates num 42 in
+    let build_persistent_tree = build persistent_tree in
+
+    all (\(test_time, temporal_tree) ->
+            temporal_tree == build_persistent_tree test_time
+    ) (zip [0 .. num] (reverse temporal_list))
+
+
 binary_tree_test_insert :: Int -> Bool
 binary_tree_test_insert num =
     let (temporal_list, persistent_tree) = build_binary_tree_with_duplicates num 42 in
@@ -81,8 +112,9 @@ binary_tree_test_insert num =
     ) (zip [0 .. num] (reverse temporal_list))
 
 
-binary_tree_test_delete :: Int -> Bool
-binary_tree_test_delete num =
+
+binary_tree_test_mock_delete :: Int -> Bool
+binary_tree_test_mock_delete num =
     let insert_seed = 42 in
     let delete_seed = 142 in
 

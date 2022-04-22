@@ -35,15 +35,71 @@ import System.Clock
 import System.Random
 
 
+small_temporal_tree_build = do
+    let tree = Leaf
+                & TEM.insert 3
+                & TEM.insert 1
+                & TEM.insert 2
+                & TEM.insert 4
+                & TEM.delete 3
 
-correctness_test = do
+    putStrLn (pretty_tree tree)
+    putStrLn ("Contains 1: " ++ (show (TEM.contains 1 tree)))
+
+small_mock_persistent_tree_build = do
+    let persistent_tree =
+            PER_M.construct_empty_tree
+            & PER_M.insert 3
+            & PER_M.insert 2
+            & PER_M.insert 1
+            & PER_M.insert 4
+            & PER_M.delete 2
+            & PER_M.delete 4
+
+    let build_tree = build persistent_tree
+
+    putStrLn ("Time 0:\n" ++ pretty_tree (build_tree 0) ++ "\n")
+    putStrLn ("Time 1:\n" ++ pretty_tree (build_tree 1) ++ "\n")
+    putStrLn ("Time 2:\n" ++ pretty_tree (build_tree 2) ++ "\n")
+    putStrLn ("Time 3:\n" ++ pretty_tree (build_tree 3) ++ "\n")
+    putStrLn ("Time 4:\n" ++ pretty_tree (build_tree 4) ++ "\n")
+    putStrLn ("Time 5:\n" ++ pretty_tree (build_tree 5) ++ "\n")
+    putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
+    putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
+
+small_persistent_tree_build = do
+    let persistent_tree =
+            PER.empty
+            & PER.insert 3
+            & PER.insert 2
+            & PER.insert 1
+            & PER.insert 4
+            -- & PER.delete 2
+            -- & PER.delete 4
+
+    let build_tree = build persistent_tree
+
+    -- putStrLn ("TimeTree\n" ++ pretty_time_tree (fst (head (rootList persistent_tree))) (currentTree persistent_tree) ++ "\n")
+
+    putStrLn ("Time 0:\n" ++ pretty_tree (build_tree 0) ++ "\n")
+    putStrLn ("Time 1:\n" ++ pretty_tree (build_tree 1) ++ "\n")
+    putStrLn ("Time 2:\n" ++ pretty_tree (build_tree 2) ++ "\n")
+    putStrLn ("Time 3:\n" ++ pretty_tree (build_tree 3) ++ "\n")
+    putStrLn ("Time 4:\n" ++ pretty_tree (build_tree 4) ++ "\n")
+    putStrLn ("Time 5:\n" ++ pretty_tree (build_tree 5) ++ "\n")
+    -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
+    -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
+
+
+
+mock_correctness_test = do
     putStrLn "Running tests"
 
     -- Insertion unbalanced binary tree
     putStr "Insertion test ......... "
     hFlush stdout
 
-    let binary_insertion_success = binary_tree_test_insert 1000
+    let binary_insertion_success = binary_tree_test_mock_insert 1000
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -53,7 +109,7 @@ correctness_test = do
     putStr "Deletion test .......... "
     hFlush stdout
 
-    let binary_deletion_success = binary_tree_test_delete 1000
+    let binary_deletion_success = binary_tree_test_mock_delete 1000
     if binary_deletion_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -75,6 +131,19 @@ correctness_test = do
 
     let binary_split_success = binary_tree_high_time_out_degree_node build size
     if binary_split_success
+        then putStrLn "Success"
+        else error "Test failed!"
+
+
+correctness_test = do
+    putStrLn "Running tests"
+
+    -- Insertion unbalanced binary tree
+    putStr "Insertion test ......... "
+    hFlush stdout
+
+    let binary_insertion_success = binary_tree_test_insert 1000
+    if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
 
@@ -171,7 +240,7 @@ deletion_size_test = do
     putStrLn "n,per,splits"
 
     let size_loop size = do
-        let per = build_binary_persistent_tree_high_out_degree size
+        let per = build_mock_binary_persistent_tree_high_out_degree size
         let (per_root_list, node_splits) = build_root_list per
 
         per_size <- recursiveSizeNF per_root_list
@@ -191,7 +260,7 @@ deletion_size_range_test = do
     putStrLn "n,per,splits"
 
     let size_loop size = do
-        let per = build_binary_persistent_tree_high_out_degree size
+        let per = build_mock_binary_persistent_tree_high_out_degree size
         let (per_root_list, node_splits) = build_root_list per
 
         per_size <- recursiveSizeNF per_root_list
@@ -271,7 +340,7 @@ sanity_size_test = do
 
 
 speed_test = do
-    let (tem, per) = build_binary_tree_without_duplicates 100000 10
+    let (tem, per) = build_mock_binary_tree_without_duplicates 100000 10
     let !per_f = force per
 
     start <- getTime ProcessCPUTime
@@ -364,60 +433,12 @@ update_insert_total_runtime_test = do
 
 
 main = do
-    let tree = Leaf
-                & TEM.insert 3
-                & TEM.insert 1
-                & TEM.insert 2
-                & TEM.insert 4
-                & TEM.delete 3
+    -- small_temporal_tree_build
+    -- small_mock_persistent_tree_build
+    -- small_persistent_tree_build
 
-    -- putStrLn (pretty_tree tree)
-    -- print (TEM.contains 1 tree)
-
-    -- let persistent_tree =
-    --         PER_M.construct_empty_tree
-    --         & PER_M.insert 3
-    --         & PER_M.insert 2
-    --         & PER_M.insert 1
-    --         & PER_M.insert 4
-    --         & PER_M.delete 2
-    --         & PER_M.delete 4
-
-    -- let build_tree = build persistent_tree
-
-    -- putStrLn ("Time 0:\n" ++ pretty_tree (build_tree 0) ++ "\n")
-    -- putStrLn ("Time 1:\n" ++ pretty_tree (build_tree 1) ++ "\n")
-    -- putStrLn ("Time 2:\n" ++ pretty_tree (build_tree 2) ++ "\n")
-    -- putStrLn ("Time 3:\n" ++ pretty_tree (build_tree 3) ++ "\n")
-    -- putStrLn ("Time 4:\n" ++ pretty_tree (build_tree 4) ++ "\n")
-    -- putStrLn ("Time 5:\n" ++ pretty_tree (build_tree 5) ++ "\n")
-    -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
-    -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
-
-    let persistent_tree_2 =
-            PER.empty
-            & PER.insert 3
-            & PER.insert 2
-            & PER.insert 1
-            & PER.insert 5
-            & PER.insert 4
-            -- & PER.delete 2
-            -- & PER.delete 4
-
-    let !build_tree_2 = build persistent_tree_2
-
-    putStrLn ("TimeTree\n" ++ pretty_time_tree (fst (head (rootList persistent_tree_2))) (currentTree persistent_tree_2) ++ "\n")
-
-    putStrLn ("Time 0:\n" ++ pretty_tree (build_tree_2 0) ++ "\n")
-    putStrLn ("Time 1:\n" ++ pretty_tree (build_tree_2 1) ++ "\n")
-    putStrLn ("Time 2:\n" ++ pretty_tree (build_tree_2 2) ++ "\n")
-    putStrLn ("Time 3:\n" ++ pretty_tree (build_tree_2 3) ++ "\n")
-    putStrLn ("Time 4:\n" ++ pretty_tree (build_tree_2 4) ++ "\n")
-    putStrLn ("Time 5:\n" ++ pretty_tree (build_tree_2 5) ++ "\n")
-    -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree_2 6) ++ "\n")
-    -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree_2 7) ++ "\n")
-
-    -- correctness_test
+    -- mock_correctness_test
+    correctness_test
     -- speed_test
     -- sanity_size_test
     -- temporal_tree_node_size_test

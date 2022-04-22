@@ -26,7 +26,7 @@ id_func node (currentTime, (freezer, idMap, idCount)) = (node, (freezer, idMap, 
 leaf :: Update s
 leaf = id_func TimeLeaf 
 
-field_update :: Int -> State s -> [Update s] -> ([(Int, TimeTree s)], State s)
+field_update :: Int -> State s -> [Update s] -> ([TimeTree s], State s)
 field_update currentTime (freezer, idMap, idCount) fields =
     let (new_fields, new_state) =
             foldl (\(new_fields, state) field_func ->
@@ -34,13 +34,13 @@ field_update currentTime (freezer, idMap, idCount) fields =
                         (new_field : new_fields, new_state)
             ) ([], (freezer, idMap, idCount)) fields
     in
-    let new_time_fields = map (\f -> (currentTime, f)) (reverse new_fields) in
-    (new_time_fields, new_state)
+    (reverse new_fields, new_state)
 
 create_new_node :: s -> [Update s] -> Update s
 create_new_node staticVal fields (currentTime, state) =
-    let (new_time_fields, (field_freezer, field_idMap, field_idCount)) =
+    let (new_fields, (field_freezer, field_idMap, field_idCount)) =
             field_update currentTime state fields in
+    let new_time_fields = map (\f -> (currentTime, f)) new_fields in
     
     ( TimeNode
         { t_elm = staticVal
@@ -54,31 +54,42 @@ create_new_node staticVal fields (currentTime, state) =
     )
 
 update_node_fields :: Int -> s -> [(Int, TimeTree s)] -> [Update s] -> Update s
-update_node_fields old_id old_elm old_fields new_fields (currentTime, state) =
-    let (new_time_fields, (field_freezer, field_idMap, field_idCount)) =
-            field_update currentTime state new_fields in
+update_node_fields old_id old_elm old_fields new_fields_func (currentTime, state) =
+    let (new_fields, (field_freezer, field_idMap, field_idCount)) =
+            field_update currentTime state new_fields_func in
+    -- let new_time_fields = map (\f -> (currentTime, f)) new_fields in
 
-    let new_freezer = 
-            foldl (\new_freezer (field_num, (old_time, old_field), (_, new_field)) ->
-                        (case (old_field, new_field) of
-                            (TimeNode {t_id=old_field_id}, TimeNode {t_id=new_field_id}) | old_field_id /= new_field_id ->
-                                [ TimeEdge
-                                    { id_from = old_id
-                                    , field = field_num
-                                    , id_to = old_field_id
-                                    , time_from = old_time
-                                    , time_to = currentTime
-                                    }
-                                ]
-                            _ -> []
-                        ) ++ new_freezer
-            ) field_freezer (zip3 [0..] old_fields new_time_fields)
+    let (new_time_fields, new_freezer) = 
+            foldl (\(new_time_fields, new_freezer) (field_num, (old_time, old_field), new_field) ->
+                        let (field_time, freezer_update) =
+                                case (old_field, new_field) of
+                                    (TimeLeaf, TimeNode {}) ->
+                                        (currentTime, [])
+                                    (TimeNode {t_id=old_field_id}, TimeLeaf) ->
+                                        freeze old_field_id
+                                    (TimeNode {t_id=old_field_id}, TimeNode {t_id=new_field_id}) | old_field_id /= new_field_id -> 
+                                        freeze old_field_id
+                                    _ -> (old_time, [])
+                                where freeze old_field_id =
+                                        ( currentTime
+                                        , [ TimeEdge
+                                            { id_from = old_id
+                                            , field = field_num
+                                            , id_to = old_field_id
+                                            , time_from = old_time
+                                            , time_to = currentTime
+                                            }
+                                        ]
+                                        )
+                        in
+                        ((field_time, new_field) : new_time_fields, freezer_update ++ new_freezer)
+            ) ([], field_freezer) (zip3 [0..] old_fields new_fields)
     in
 
     ( TimeNode
         { t_elm = old_elm
         , t_id = old_id
-        , t_fields = new_time_fields
+        , t_fields = reverse new_time_fields
         }
     , ( new_freezer
       , field_idMap
@@ -88,9 +99,10 @@ update_node_fields old_id old_elm old_fields new_fields (currentTime, state) =
 
 
 replace_node :: Int -> [(Int, TimeTree s)] -> s -> [Update s] -> Update s
-replace_node old_id old_fields staticVal new_fields (currentTime, state) =
-    let (new_time_fields, (field_freezer, field_idMap, field_idCount)) =
-            field_update currentTime state new_fields in
+replace_node old_id old_fields staticVal new_fields_func (currentTime, state) =
+    let (new_fields, (field_freezer, field_idMap, field_idCount)) =
+            field_update currentTime state new_fields_func in
+    let new_time_fields = map (\f -> (currentTime, f)) new_fields in
     
     let new_freezer = 
             foldl (\new_freezer (field_num, (old_time, old_field)) ->
