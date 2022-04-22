@@ -27,6 +27,15 @@ data TimeTree s
         }
     deriving (Show, Generic, NFData)
 
+-- User viewed update structure
+
+type State s = ([TimeEdge], [(Int, s)], Int)
+type Update s = (Int, State s) -> (TimeTree s, State s)
+
+data UserTree s
+    = UserLeaf
+    | UserNode (s, [Update s] -> Update s, s -> [Update s] -> Update s, [(UserTree s, Update s)])
+
 -- TODO: add dynamic information
 data PartialTree s = PartialTree
     { edgeFreezer :: [TimeEdge]

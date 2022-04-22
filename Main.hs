@@ -4,12 +4,15 @@
 
 module Main where
 
+import Data.List as L
+
 import Data.Function
 import System.IO
 
 import DataRecords
 
 import Binary_Tree_temporal as TEM
+import Binary_Tree_persistent_mock as PER_M
 import Binary_Tree_persistent as PER
 
 import DAG_construction
@@ -305,7 +308,7 @@ update_insert_runtime_test = do
 
             start_per <- getTime ProcessCPUTime
             let per_loop itr = do
-                let !new_per = force (PER.insert h per_f)
+                let !new_per = force (PER_M.insert h per_f)
                 let itr' = itr + 1
                 when (itr' < repeats) (per_loop itr')
             per_loop 0
@@ -314,12 +317,12 @@ update_insert_runtime_test = do
             putStrLn (show n ++ "," ++ show (toNanoSecs (end_tem - start_tem)) ++ "," ++ show (toNanoSecs (end_per - start_per)))
             hFlush stdout
 
-            when ((tail elements) /= []) (loop (n + 1) (tail elements) (TEM.insert h tem_f) (PER.insert h per_f))
+            when ((tail elements) /= []) (loop (n + 1) (tail elements) (TEM.insert h tem_f) (PER_M.insert h per_f))
 
 
     let pureGen = mkStdGen seed
     let random_permutation = random_shuffle num pureGen
-    loop 0 random_permutation Leaf PER.construct_empty_tree
+    loop 0 random_permutation Leaf PER_M.construct_empty_tree
 
 
 update_insert_total_runtime_test = do
@@ -343,7 +346,7 @@ update_insert_total_runtime_test = do
             end_tem <- getTime ProcessCPUTime
 
             start_per <- getTime ProcessCPUTime
-            let per = foldl (flip PER.insert) PER.construct_empty_tree random_permutation
+            let per = foldl (flip PER_M.insert) PER_M.construct_empty_tree random_permutation
             let !per_f = force per
             end_per <- getTime ProcessCPUTime
 
@@ -371,16 +374,16 @@ main = do
     -- putStrLn (pretty_tree tree)
     -- print (TEM.contains 1 tree)
 
-    let persistent_tree =
-            PER.construct_empty_tree
-            & PER.insert 3
-            & PER.insert 2
-            & PER.insert 1
-            & PER.insert 4
-            & PER.delete 2
-            & PER.delete 4
+    -- let persistent_tree =
+    --         PER_M.construct_empty_tree
+    --         & PER_M.insert 3
+    --         & PER_M.insert 2
+    --         & PER_M.insert 1
+    --         & PER_M.insert 4
+    --         & PER_M.delete 2
+    --         & PER_M.delete 4
 
-    let build_tree = build persistent_tree
+    -- let build_tree = build persistent_tree
 
     -- putStrLn ("Time 0:\n" ++ pretty_tree (build_tree 0) ++ "\n")
     -- putStrLn ("Time 1:\n" ++ pretty_tree (build_tree 1) ++ "\n")
@@ -391,12 +394,35 @@ main = do
     -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
     -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
 
+    let persistent_tree_2 =
+            PER.empty
+            & PER.insert 3
+            & PER.insert 2
+            & PER.insert 1
+            & PER.insert 5
+            & PER.insert 4
+            -- & PER.delete 2
+            -- & PER.delete 4
+
+    let !build_tree_2 = build persistent_tree_2
+
+    putStrLn ("TimeTree\n" ++ pretty_time_tree (fst (head (rootList persistent_tree_2))) (currentTree persistent_tree_2) ++ "\n")
+
+    putStrLn ("Time 0:\n" ++ pretty_tree (build_tree_2 0) ++ "\n")
+    putStrLn ("Time 1:\n" ++ pretty_tree (build_tree_2 1) ++ "\n")
+    putStrLn ("Time 2:\n" ++ pretty_tree (build_tree_2 2) ++ "\n")
+    putStrLn ("Time 3:\n" ++ pretty_tree (build_tree_2 3) ++ "\n")
+    putStrLn ("Time 4:\n" ++ pretty_tree (build_tree_2 4) ++ "\n")
+    putStrLn ("Time 5:\n" ++ pretty_tree (build_tree_2 5) ++ "\n")
+    -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree_2 6) ++ "\n")
+    -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree_2 7) ++ "\n")
+
     -- correctness_test
     -- speed_test
     -- sanity_size_test
     -- temporal_tree_node_size_test
     -- insertion_size_test build_binary_tree_without_duplicates
-    deletion_size_test
+    -- deletion_size_test
     -- deletion_size_range_test
 
     -- update_insert_runtime_test

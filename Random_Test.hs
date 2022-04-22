@@ -10,6 +10,7 @@ import System.Random.Shuffle
 
 import DataRecords
 import Binary_Tree_temporal as TEM
+import Binary_Tree_persistent_mock as PER_M
 import Binary_Tree_persistent as PER
 import DAG_construction
 
@@ -29,9 +30,9 @@ build_binary_tree :: [Int] -> ([Tree Int], PartialTree Int)
 build_binary_tree =
     foldl (\(tem_h : tem_t, per) element ->
             let next_tem = TEM.insert element tem_h in
-            let next_per = PER.insert element per in
+            let next_per = PER_M.insert element per in
             (next_tem : tem_h : tem_t, next_per)
-    ) ([Leaf], PER.construct_empty_tree)
+    ) ([Leaf], PER_M.construct_empty_tree)
 
 
 build_binary_tree_with_duplicates :: Int -> Int -> ([Tree Int], PartialTree Int)
@@ -56,14 +57,14 @@ build_binary_persistent_tree_high_out_degree num =
     -- Build initial tree, using insertion
     let persistent_base =
             foldl (\per element ->
-                    PER.insert element per
-            ) PER.construct_empty_tree (first_path ++ second_path)
+                    PER_M.insert element per
+            ) PER_M.construct_empty_tree (first_path ++ second_path)
     in
 
     -- Make deletion of the second path
     let persistent_tree =
             foldl (\per element ->
-                    PER.delete element per
+                    PER_M.delete element per
             ) persistent_base second_path
     in
 
@@ -93,9 +94,9 @@ binary_tree_test_delete num =
     let (temporal_base, persistent_base) =
             foldl (\(tem, per) element ->
                     let next_tem = TEM.insert element tem in
-                    let next_per = PER.insert element per in
+                    let next_per = PER_M.insert element per in
                     (next_tem, next_per)
-            ) (Leaf, PER.construct_empty_tree) initial_random_elements
+            ) (Leaf, PER_M.construct_empty_tree) initial_random_elements
     in
 
     -- Generate elements
@@ -106,7 +107,7 @@ binary_tree_test_delete num =
     let (temporal_list, persistent_tree) =
             foldl (\(tem_h : tem_t, per) element ->
                     let next_tem = TEM.delete element tem_h in
-                    let next_per = PER.delete element per in
+                    let next_per = PER_M.delete element per in
                     (next_tem : tem_h : tem_t, next_per)
             ) ([temporal_base], persistent_base) random_elements
     in
@@ -138,16 +139,16 @@ binary_tree_high_time_out_degree_node builder num =
     let (temporal_base, persistent_base) =
             foldl (\(tem, per) element ->
                     let next_tem = TEM.insert element tem in
-                    let next_per = PER.insert element per in
+                    let next_per = PER_M.insert element per in
                     (next_tem, next_per)
-            ) (Leaf, PER.construct_empty_tree) (first_path ++ second_path)
+            ) (Leaf, PER_M.construct_empty_tree) (first_path ++ second_path)
     in
 
     -- Make deletion of the second path
     let (temporal_list, persistent_tree) =
             foldl (\(tem_h : tem_t, per) element ->
                     let next_tem = TEM.delete element tem_h in
-                    let next_per = PER.delete element per in
+                    let next_per = PER_M.delete element per in
                     (next_tem : tem_h : tem_t, next_per)
             ) ([temporal_base], persistent_base) second_path
     in

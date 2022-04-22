@@ -18,3 +18,13 @@ pretty_tree tree =
                 indent ++ "|- " ++ (show elm) ++ "\n" ++ (intercalate "\n" (map (\c -> to_str c (indent ++ "|  ")) children))
     in
     to_str tree ""
+
+
+pretty_time_tree :: Show e => Int -> TimeTree e -> String
+pretty_time_tree time tree =
+    let to_str tree time indent = case tree of
+            TimeLeaf -> indent ++ "|- (" ++ (show time) ++ ")"
+            TimeNode {t_elm=elm, t_fields=children} ->
+                indent ++ "|- " ++ (show elm) ++ " (" ++ (show time) ++ ") \n" ++ (intercalate "\n" (map (\(t, c) -> to_str c t (indent ++ "|  ")) children))
+    in
+    to_str tree time ""
