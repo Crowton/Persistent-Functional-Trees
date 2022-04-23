@@ -16,7 +16,7 @@ data TimeEdge = TimeEdge
     , time_from :: Int
     , time_to :: Int
     }
-    deriving (Show, Generic, NFData)
+    deriving (Eq, Show, Generic, NFData)
 
 data TimeTree s
     = TimeLeaf
@@ -25,7 +25,7 @@ data TimeTree s
         , t_id :: Int
         , t_fields :: [(Int, TimeTree s)] -- (Exists from time, nodeto)
         }
-    deriving (Show, Generic, NFData)
+    deriving (Eq, Show, Generic, NFData)
 
 -- User viewed update structure
 
@@ -46,7 +46,7 @@ data PartialTree s = PartialTree
     , time :: Int
     , currentTree :: TimeTree s
     }
-    deriving (Show, Generic, NFData)
+    deriving (Eq, Show, Generic, NFData)
 
 
 -- Nodes used in DAG
@@ -66,7 +66,7 @@ data FrozenEdge staticType = FrozenEdge
     deriving (Show, Generic, NFData)
 
 
--- Nodes exposed to user under update and query
+-- Nodes exposed to user under query
 
 data Tree t
     = Leaf

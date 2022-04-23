@@ -33,6 +33,7 @@ import Formatting.Clock
 import System.Clock
 
 import System.Random
+import qualified Text.XHtml as PER_M
 
 
 small_temporal_tree_build = do
@@ -71,11 +72,13 @@ small_persistent_tree_build = do
     let persistent_tree =
             PER.empty
             & PER.insert 3
+            & PER.insert 3
             & PER.insert 2
             & PER.insert 1
             & PER.insert 4
-            -- & PER.delete 2
-            -- & PER.delete 4
+            & PER.delete 2
+            & PER.delete 4
+            & PER.delete 5
 
     let build_tree = build persistent_tree
 
@@ -87,8 +90,10 @@ small_persistent_tree_build = do
     putStrLn ("Time 3:\n" ++ pretty_tree (build_tree 3) ++ "\n")
     putStrLn ("Time 4:\n" ++ pretty_tree (build_tree 4) ++ "\n")
     putStrLn ("Time 5:\n" ++ pretty_tree (build_tree 5) ++ "\n")
-    -- putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
-    -- putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
+    putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
+    putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
+    putStrLn ("Time 8:\n" ++ pretty_tree (build_tree 8) ++ "\n")
+    putStrLn ("Time 9:\n" ++ pretty_tree (build_tree 9) ++ "\n")
 
 
 
@@ -121,7 +126,7 @@ mock_correctness_test = do
     putStr "Node non splitting test .... "
     hFlush stdout
 
-    let binary_split_success = binary_tree_high_time_out_degree_node build_non_split size
+    let binary_split_success = binary_tree_mock_high_time_out_degree_node build_non_split size
     if binary_split_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -129,7 +134,7 @@ mock_correctness_test = do
     putStr "Node splitting test .... "
     hFlush stdout
 
-    let binary_split_success = binary_tree_high_time_out_degree_node build size
+    let binary_split_success = binary_tree_mock_high_time_out_degree_node build size
     if binary_split_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -146,6 +151,62 @@ correctness_test = do
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
+    
+
+    -- Deletion unbalanced binary tree
+    putStr "Deletion test .......... "
+    hFlush stdout
+
+    let binary_deletion_success = binary_tree_test_delete 5 -- 1000
+    if binary_deletion_success
+        then putStrLn "Success"
+        else error "Test failed!"
+
+
+    -- Deletion unbalanced binary tree
+    let size = 1000
+
+    putStr "Node non splitting test .... "
+    hFlush stdout
+
+    let binary_split_success = binary_tree_high_time_out_degree_node build_non_split size
+    if binary_split_success
+        then putStrLn "Success"
+        else error "Test failed!"
+
+    putStr "Node splitting test .... "
+    hFlush stdout
+
+    let binary_split_success = binary_tree_high_time_out_degree_node build size
+    if binary_split_success
+        then putStrLn "Success"
+        else error "Test failed!"
+
+
+delete_persistent_compare = do
+    let build_elm = [2, 5, 8, 3, 9, 0, 1]
+    let del_elm   = [0, 5, 3, 8, 1, 2, 9]
+
+    let per_mock = foldl (\t e -> PER_M.insert e t) PER_M.construct_empty_tree build_elm
+    let per_real = foldl (\t e -> PER.insert e t) PER.empty build_elm
+
+    putStrLn ("Initial tree:\n" ++ (pretty_time_tree 1 (currentTree per_mock)) ++ "\n")
+
+    let loop elements mock real = do
+            let elm = head elements
+            
+            let new_mock = PER_M.delete elm mock
+            let new_real = PER.delete elm real
+
+            putStrLn ("After deleting " ++ show elm ++ ":")
+            if new_mock == new_real
+                then putStrLn "All good"
+                else putStrLn ("Mock:\n" ++ show new_mock ++ "\n\n" 
+                            ++ "Real:\n" ++ show new_real ++ "\n")
+
+            when ((tail elements) /= []) (loop (tail elements) new_mock new_real)
+
+    loop del_elm per_mock per_real
 
 
 temporal_tree_node_size_test = do
@@ -436,9 +497,10 @@ main = do
     -- small_temporal_tree_build
     -- small_mock_persistent_tree_build
     -- small_persistent_tree_build
+    delete_persistent_compare
 
     -- mock_correctness_test
-    correctness_test
+    -- correctness_test
     -- speed_test
     -- sanity_size_test
     -- temporal_tree_node_size_test
