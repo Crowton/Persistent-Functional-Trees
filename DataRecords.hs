@@ -16,7 +16,7 @@ data TimeEdge = TimeEdge
     , time_from :: Int
     , time_to :: Int
     }
-    deriving (Eq, Show, Generic, NFData)
+    deriving (Eq, Ord, Show, Generic, NFData)
 
 data TimeTree s
     = TimeLeaf
@@ -34,7 +34,8 @@ type Update s = (Int, State s) -> (TimeTree s, State s)
 
 data UserTree s
     = UserLeaf
-    | UserNode (s, [Update s] -> Update s, s -> [Update s] -> Update s, [(UserTree s, Update s)])
+    | UserNode (s, [Update s] -> Update s, s -> [Update s] -> Update s, Update s -> Update s, [(UserTree s, Update s)])
+    -- Input: element in the node, func to overwrite fields, func to overwrite value and fields, func to replace by field, list of fields
 
 -- TODO: add dynamic information
 data PartialTree s = PartialTree

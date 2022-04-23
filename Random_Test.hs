@@ -166,14 +166,10 @@ binary_tree_test_delete num =
     let insert_seed = 42 in
     let delete_seed = 142 in
 
-    trace "\n" $
-
     -- Generate elements
     let insert_pureGen = mkStdGen insert_seed in
     let initial_random_elements = rolls num insert_pureGen in
     
-    trace ("Generation items:\n" ++ (show initial_random_elements) ++ "\n") $
-
     -- Build random initial tree, using insertion
     let (temporal_base, persistent_base) =
             foldl (\(tem, per) element ->
@@ -183,14 +179,9 @@ binary_tree_test_delete num =
             ) (Leaf, PER.empty) initial_random_elements
     in
     
-    trace ("Initial tem:\n" ++ (pretty_tree temporal_base) ++ "\n") $
-    trace ("Initial per:\n" ++ (pretty_tree (build persistent_base (time persistent_base - 1))) ++ "\n") $
-
     -- Generate elements
     let delete_pureGen = mkStdGen delete_seed in
     let random_elements = rolls num delete_pureGen in
-
-    trace ("Deletion items:\n" ++ (show random_elements) ++ "\n") $
 
     -- Make deletion on tree
     let (temporal_list, persistent_tree) =
@@ -203,14 +194,6 @@ binary_tree_test_delete num =
 
     -- Build tree
     let build_persistent_tree = build persistent_tree in
-
-    trace ("Next Couple per:\n" ++ (pretty_tree (build_persistent_tree (time persistent_base - 1))) ++ "\n") $
-    trace ("Next Couple per:\n" ++ (pretty_tree (build_persistent_tree (time persistent_base))) ++ "\n") $
-    trace ("Next Couple per:\n" ++ (pretty_tree (build_persistent_tree (time persistent_base + 1))) ++ "\n") $
-    trace ("Next Couple per:\n" ++ (pretty_tree (build_persistent_tree (time persistent_base + 2))) ++ "\n") $
-    trace ("Next Couple per:\n" ++ (pretty_tree (build_persistent_tree (time persistent_base + 3))) ++ "\n") $
-    trace ("Next Couple per:\n" ++ (pretty_tree (build_persistent_tree (time persistent_base + 4))) ++ "\n") $
-    trace ("Next Couple per:\n" ++ (pretty_tree (build_persistent_tree (time persistent_base + 5))) ++ "\n") $
 
     -- Fetch time before the first deletion
     let check_time_from = time persistent_base - 1 in

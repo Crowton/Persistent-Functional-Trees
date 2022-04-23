@@ -98,8 +98,8 @@ update_node_fields old_id old_elm old_fields new_fields_func (currentTime, state
     )
 
 
-replace_node :: Int -> [(Int, TimeTree s)] -> s -> [Update s] -> Update s
-replace_node old_id old_fields staticVal new_fields_func (currentTime, state) =
+replace_node_by_element :: Int -> [(Int, TimeTree s)] -> s -> [Update s] -> Update s
+replace_node_by_element old_id old_fields staticVal new_fields_func (currentTime, state) =
     let (new_fields, (field_freezer, field_idMap, field_idCount)) =
             field_update currentTime state new_fields_func in
     let new_time_fields = map (\f -> (currentTime, f)) new_fields in
@@ -132,12 +132,43 @@ replace_node old_id old_fields staticVal new_fields_func (currentTime, state) =
       )
     )
 
+
+replace_node_by_tree :: Int -> [(Int, TimeTree s)] -> Update s -> Update s
+replace_node_by_tree old_id old_fields new_tree_func (currentTime, state) =
+    let (new_tree, (new_freezer, new_idMap, new_idCount)) = new_tree_func (currentTime, state) in
+    
+    let new_new_freezer = 
+            foldl (\new_freezer (field_num, (old_time, old_field)) ->
+                        (case old_field of
+                            TimeNode {t_id=old_field_id} ->
+                                [ TimeEdge
+                                    { id_from = old_id
+                                    , field = field_num
+                                    , id_to = old_field_id
+                                    , time_from = old_time
+                                    , time_to = currentTime
+                                    }
+                                ]
+                            _ -> []
+                        ) ++ new_freezer
+            ) new_freezer (zip [0..] old_fields)
+    in 
+
+    ( new_tree
+    , ( new_new_freezer
+      , new_idMap
+      , new_idCount
+      )
+    )
+
+
 create_user_tree :: TimeTree s -> UserTree s
 create_user_tree TimeLeaf = UserLeaf
 create_user_tree TimeNode {t_id=id, t_elm=elm, t_fields=fields} =
     UserNode ( elm
              , update_node_fields id elm fields
-             , replace_node id fields
+             , replace_node_by_element id fields
+             , replace_node_by_tree id fields
              , map (\(_, f) -> (create_user_tree f, id_func f)) fields
              )
 

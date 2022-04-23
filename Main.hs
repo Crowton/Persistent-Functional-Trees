@@ -151,13 +151,13 @@ correctness_test = do
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
-    
+
 
     -- Deletion unbalanced binary tree
     putStr "Deletion test .......... "
     hFlush stdout
 
-    let binary_deletion_success = binary_tree_test_delete 5 -- 1000
+    let binary_deletion_success = binary_tree_test_delete 1000
     if binary_deletion_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -192,16 +192,41 @@ delete_persistent_compare = do
 
     putStrLn ("Initial tree:\n" ++ (pretty_time_tree 1 (currentTree per_mock)) ++ "\n")
 
+    let eq_per PartialTree {edgeFreezer=edgeFreezer1
+                    , idStaticList=idStaticList1
+                    , rootList=rootList1
+                    , idCount=idCount1
+                    , fieldCount=fieldCount1
+                    , time=time1
+                    , currentTree=currentTree1
+                    }
+               PartialTree {edgeFreezer=edgeFreezer2
+                    , idStaticList=idStaticList2
+                    , rootList=rootList2
+                    , idCount=idCount2
+                    , fieldCount=fieldCount2
+                    , time=time2
+                    , currentTree=currentTree2
+                    } =
+            (sort edgeFreezer1 == sort edgeFreezer2)
+            && idStaticList1 == idStaticList2
+            && (rootList1 == rootList2)
+            && (idCount1 == idCount2)
+            && (fieldCount1 == fieldCount2)
+            && (time1 == time2)
+            && (currentTree1 == currentTree2)
+
+
     let loop elements mock real = do
             let elm = head elements
-            
+
             let new_mock = PER_M.delete elm mock
             let new_real = PER.delete elm real
 
             putStrLn ("After deleting " ++ show elm ++ ":")
-            if new_mock == new_real
-                then putStrLn "All good"
-                else putStrLn ("Mock:\n" ++ show new_mock ++ "\n\n" 
+            if eq_per new_mock new_real
+                then putStrLn ("All good! The tree is now:\n" ++ (pretty_time_tree 1 (currentTree new_mock)) ++ "\n")
+                else putStrLn ("Mock:\n" ++ show new_mock ++ "\n\n"
                             ++ "Real:\n" ++ show new_real ++ "\n")
 
             when ((tail elements) /= []) (loop (tail elements) new_mock new_real)
@@ -497,10 +522,10 @@ main = do
     -- small_temporal_tree_build
     -- small_mock_persistent_tree_build
     -- small_persistent_tree_build
-    delete_persistent_compare
+    -- delete_persistent_compare
 
     -- mock_correctness_test
-    -- correctness_test
+    correctness_test
     -- speed_test
     -- sanity_size_test
     -- temporal_tree_node_size_test
