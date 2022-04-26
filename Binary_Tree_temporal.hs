@@ -38,3 +38,9 @@ delete e Node {elm=elm, children=[left, right]}
                    Just elm' -> Node {elm=elm', children=[left', right]}
   | e < elm = Node {elm=elm, children=[delete e left, right]}
   | otherwise = Node {elm=elm, children=[left, delete e right]}
+
+
+
+rotate_right :: Tree s -> Tree s
+rotate_right (Node x [Node y [a, b], c]) = Node y [a, Node x [b, c]]
+rotate_right node = node
