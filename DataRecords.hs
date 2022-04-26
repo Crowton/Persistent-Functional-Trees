@@ -52,7 +52,7 @@ type Update s = (Int, State s) -> (TimeTree s, State s)
 
 data UserTree s where
     UserLeaf :: UserTree s
-    UserNode :: ValuesToParameter a s => s -> (a -> Update s) -> [(UserTree s, Update s)] -> UserTree s
+    UserNode :: (s, s -> [Update s] -> Update s, Update s -> Update s, [(UserTree s, Update s)]) -> UserTree s
     -- Input: element in the node, func to overwrite fields, func to overwrite value and fields, func to replace by field, list of fields
 
 -- TODO: add dynamic information
