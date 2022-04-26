@@ -1,8 +1,4 @@
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleContexts #-}
 
 module DataRecords where
 
@@ -32,28 +28,15 @@ data TimeTree s
         }
     deriving (Eq, Show, Generic, NFData)
 
--- 'Type coersion'
-
-data FunctionParameters s
-    = ParameterNode (s, [Update s])
-    | ParameterTree (Update s)
-
-class ValuesToParameter a s where
-    toParam :: a -> FunctionParameters s
-instance ValuesToParameter (s, [Update s]) s where
-    toParam (elm, fields) = ParameterNode (elm, fields)
-instance ValuesToParameter (Update s) s where
-    toParam tree = ParameterTree tree
-
 -- User viewed update structure
 
 type State s = ([TimeEdge], [(Int, s)], Int)
 type Update s = (Int, State s) -> (TimeTree s, State s)
 
-data UserTree s where
-    UserLeaf :: UserTree s
-    UserNode :: (s, s -> [Update s] -> Update s, Update s -> Update s, [(UserTree s, Update s)]) -> UserTree s
-    -- Input: element in the node, func to overwrite fields, func to overwrite value and fields, func to replace by field, list of fields
+data UserTree s
+    = UserLeaf
+    | UserNode (s, s -> [Update s] -> Update s, Update s -> Update s, [(UserTree s, Update s)])
+    -- Input: element in the node, func to make node from element and fields, func to replace node by build tree, list of fields
 
 -- TODO: add dynamic information
 data PartialTree s = PartialTree
