@@ -15,6 +15,7 @@ import Binary_Tree_temporal as TEM
 import Binary_Tree_persistent_mock as PER_M
 import Binary_Tree_persistent as PER
 
+import Persistent_update
 import DAG_construction
 
 import Random_Test
@@ -22,18 +23,15 @@ import Random_Test
 import Prettify
 
 import GHC.DataSize
-import Control.Arrow
 import Control.Monad
 
 import Control.DeepSeq
 
 import Control.Exception
--- import Formatting as F
 import Formatting.Clock
 import System.Clock
 
 import System.Random
-import qualified Text.XHtml as PER_M
 
 
 small_temporal_tree_build = do
@@ -94,6 +92,26 @@ small_persistent_tree_build = do
     putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
     putStrLn ("Time 8:\n" ++ pretty_tree (build_tree 8) ++ "\n")
     putStrLn ("Time 9:\n" ++ pretty_tree (build_tree 9) ++ "\n")
+
+
+small_persistent_rotate = do
+    let per_tree =
+            PER.empty
+            & PER.insert 6
+            & PER.insert 2
+            & PER.insert 7
+            & PER.insert 1
+            & PER.insert 4
+            & PER.insert 3
+            & PER.insert 5
+            & update (\_ -> PER.rotate_right_left) Nothing
+
+    let tree = build per_tree
+
+    putStrLn ("Before rotation:\n" ++ pretty_tree (tree 7) ++ "\n")
+    putStrLn ("After rotation:\n" ++ pretty_tree (tree 8) ++ "\n")
+
+
 
 
 
@@ -523,9 +541,10 @@ main = do
     -- small_mock_persistent_tree_build
     -- small_persistent_tree_build
     -- delete_persistent_compare
+    small_persistent_rotate
 
     -- mock_correctness_test
-    correctness_test
+    -- correctness_test
     -- speed_test
     -- sanity_size_test
     -- temporal_tree_node_size_test

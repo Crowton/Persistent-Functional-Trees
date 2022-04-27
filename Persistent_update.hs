@@ -7,9 +7,6 @@
 module Persistent_update where
 
 import DataRecords
-import Data.Either
-import Data.Coerce (coerce, Coercible)
-import Data.Function
 
 
 construct_empty_tree :: Int -> PartialTree s
@@ -155,6 +152,12 @@ create_user_tree TimeNode {t_id=id, t_elm=elm, t_fields=fields} =
              , replace_node_by_tree id fields
              , map (\(_, f) -> (create_user_tree f, id_func f)) fields
              )
+
+tree_to_update :: Eq s => (UserTree s -> Update s) -> Update s -> Update s
+tree_to_update func upd (currentTime, state) =
+    let (tree, new_state) = upd (currentTime, state) in
+    func (create_user_tree tree) (currentTime, new_state)
+
 
 update :: Eq s => (t -> UserTree s -> Update s) -> t -> PartialTree s -> PartialTree s
 update func val partialTree =
