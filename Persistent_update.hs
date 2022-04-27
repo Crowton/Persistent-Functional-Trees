@@ -31,6 +31,10 @@ id_func node (_, state) = (node, state)
 leaf :: Update s
 leaf = id_func TimeLeaf
 
+id_node :: UserTree s -> Update s
+id_node UserLeaf = leaf
+id_node (UserNode (x, con, _, fields)) = con x (map snd fields)
+
 field_update :: Int -> State s -> [Update s] -> ([TimeTree s], State s)
 field_update currentTime state fields =
     let (new_fields, new_state) =
@@ -85,8 +89,7 @@ freeze_all_edges old_id fields (currentTime, (freezer, idMap, idCount)) =
 
 replace_node_by_element :: Eq s => Int -> s -> [(Int, TimeTree s)] -> s -> [Update s] -> Update s
 replace_node_by_element old_id old_elm old_fields new_elm new_fields_func (currentTime, state) =
-    let (new_fields, field_state) =
-            field_update currentTime state new_fields_func in
+    let (new_fields, field_state) = field_update currentTime state new_fields_func in
     
     if old_elm == new_elm
         then

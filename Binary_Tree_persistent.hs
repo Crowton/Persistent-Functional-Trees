@@ -49,3 +49,14 @@ delete = update delete'
 rotate_right :: UserTree e -> Update e
 rotate_right (UserNode (x, con_x, _, [(UserNode (y, _, rep_y, [(_, a), (_, b)]), _), (_, c)]))
     = con_x y [rep_y a, create_new_node x [b, c]]
+rotate_right node = id_node node
+
+rotate_left :: UserTree e -> Update e
+rotate_left (UserNode (x, con_x, _, [(_, a), (UserNode (y, _, rep_y, [(_, b), (_, c)]), _)]))
+    = con_x y [create_new_node x [a, b], rep_y c]
+rotate_left node = id_node node
+
+
+rotate_right_left :: UserTree e -> Update e
+rotate_right_left (UserNode (elm, con, _, [(left_tree, _), (_, right_ret)])) =
+    rotate_right (con elm [rotate_left left_tree, right_ret])
