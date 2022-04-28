@@ -34,49 +34,29 @@ import System.Clock
 import System.Random
 
 
-small_temporal_tree_build = do
-    let tree = Leaf
-                & TEM.insert 3
-                & TEM.insert 1
-                & TEM.insert 2
-                & TEM.insert 4
-                & TEM.delete 3
+small_temporal_tree_build (tem_empty, tem_insert, tem_delete) = do
+    let tree =
+            tem_empty
+            & tem_insert 3
+            & tem_insert 1
+            & tem_insert 2
+            & tem_insert 4
+            & tem_delete 3
 
     putStrLn (pretty_tree tree)
     putStrLn ("Contains 1: " ++ (show (TEM.contains 1 tree)))
 
-small_mock_persistent_tree_build = do
+small_persistent_tree_build (per_empty, per_insert, per_delete) = do
     let persistent_tree =
-            PER_M.construct_empty_tree
-            & PER_M.insert 3
-            & PER_M.insert 2
-            & PER_M.insert 1
-            & PER_M.insert 4
-            & PER_M.delete 2
-            & PER_M.delete 4
-
-    let build_tree = build persistent_tree
-
-    putStrLn ("Time 0:\n" ++ pretty_tree (build_tree 0) ++ "\n")
-    putStrLn ("Time 1:\n" ++ pretty_tree (build_tree 1) ++ "\n")
-    putStrLn ("Time 2:\n" ++ pretty_tree (build_tree 2) ++ "\n")
-    putStrLn ("Time 3:\n" ++ pretty_tree (build_tree 3) ++ "\n")
-    putStrLn ("Time 4:\n" ++ pretty_tree (build_tree 4) ++ "\n")
-    putStrLn ("Time 5:\n" ++ pretty_tree (build_tree 5) ++ "\n")
-    putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
-    putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
-
-small_persistent_tree_build = do
-    let persistent_tree =
-            PER.empty
-            & PER.insert 3
-            & PER.insert 3
-            & PER.insert 2
-            & PER.insert 1
-            & PER.insert 4
-            & PER.delete 2
-            & PER.delete 4
-            & PER.delete 5
+            per_empty
+            & per_insert 3
+            & per_insert 3
+            & per_insert 2
+            & per_insert 1
+            & per_insert 4
+            & per_delete 2
+            & per_delete 4
+            & per_delete 5
 
     let build_tree = build persistent_tree
 
@@ -92,7 +72,6 @@ small_persistent_tree_build = do
     putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
     putStrLn ("Time 8:\n" ++ pretty_tree (build_tree 8) ++ "\n")
     putStrLn ("Time 9:\n" ++ pretty_tree (build_tree 9) ++ "\n")
-
 
 small_persistent_rotate = do
     let per_tree =
@@ -114,15 +93,14 @@ small_persistent_rotate = do
 
 
 
-
-mock_correctness_test = do
+correctness_test tem_build per_build = do
     putStrLn "Running tests"
 
     -- Insertion unbalanced binary tree
     putStr "Insertion test ......... "
     hFlush stdout
 
-    let binary_insertion_success = binary_tree_test_mock_insert 1000
+    let binary_insertion_success = binary_tree_test_insert tem_build per_build 1000
     if binary_insertion_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -132,7 +110,7 @@ mock_correctness_test = do
     putStr "Deletion test .......... "
     hFlush stdout
 
-    let binary_deletion_success = binary_tree_test_mock_delete 1000
+    let binary_deletion_success = binary_tree_test_delete tem_build per_build 1000
     if binary_deletion_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -144,7 +122,7 @@ mock_correctness_test = do
     putStr "Node non splitting test .... "
     hFlush stdout
 
-    let binary_split_success = binary_tree_mock_high_time_out_degree_node build_non_split size
+    let binary_split_success = binary_tree_high_time_out_degree_node tem_build per_build build_non_split size
     if binary_split_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -152,50 +130,7 @@ mock_correctness_test = do
     putStr "Node splitting test .... "
     hFlush stdout
 
-    let binary_split_success = binary_tree_mock_high_time_out_degree_node build size
-    if binary_split_success
-        then putStrLn "Success"
-        else error "Test failed!"
-
-
-correctness_test = do
-    putStrLn "Running tests"
-
-    -- Insertion unbalanced binary tree
-    putStr "Insertion test ......... "
-    hFlush stdout
-
-    let binary_insertion_success = binary_tree_test_insert 1000
-    if binary_insertion_success
-        then putStrLn "Success"
-        else error "Test failed!"
-
-
-    -- Deletion unbalanced binary tree
-    putStr "Deletion test .......... "
-    hFlush stdout
-
-    let binary_deletion_success = binary_tree_test_delete 1000
-    if binary_deletion_success
-        then putStrLn "Success"
-        else error "Test failed!"
-
-
-    -- Deletion unbalanced binary tree
-    let size = 1000
-
-    putStr "Node non splitting test .... "
-    hFlush stdout
-
-    let binary_split_success = binary_tree_high_time_out_degree_node build_non_split size
-    if binary_split_success
-        then putStrLn "Success"
-        else error "Test failed!"
-
-    putStr "Node splitting test .... "
-    hFlush stdout
-
-    let binary_split_success = binary_tree_high_time_out_degree_node build size
+    let binary_split_success = binary_tree_high_time_out_degree_node tem_build per_build build size
     if binary_split_success
         then putStrLn "Success"
         else error "Test failed!"
@@ -252,11 +187,11 @@ delete_persistent_compare = do
     loop del_elm per_mock per_real
 
 
-temporal_tree_node_size_test = do
-    let tree_0 = Leaf :: Tree Int
+temporal_tree_node_size_test (tem_empty, tem_insert, _) = do
+    let tree_0 = tem_empty :: Tree Int
     let tree_1
             = tree_0
-            & TEM.insert 1
+            & tem_insert 1
 
     size_0 <- recursiveSizeNF tree_0
     size_1 <- recursiveSizeNF tree_1
@@ -266,7 +201,7 @@ temporal_tree_node_size_test = do
 
     let tree_2
             = tree_1
-            & TEM.insert 2
+            & tem_insert 2
 
     size_2 <- recursiveSizeNF tree_2
 
@@ -274,16 +209,16 @@ temporal_tree_node_size_test = do
 
     let tree_7
             = tree_0
-            & TEM.insert 4
-            & TEM.insert 2
-            & TEM.insert 6
-            & TEM.insert 1
-            & TEM.insert 3
-            & TEM.insert 5
-            & TEM.insert 7
+            & tem_insert 4
+            & tem_insert 2
+            & tem_insert 6
+            & tem_insert 1
+            & tem_insert 3
+            & tem_insert 5
+            & tem_insert 7
     let tree_8
             = tree_7
-            & TEM.insert 8
+            & tem_insert 8
 
     size_7 <- recursiveSizeNF tree_7
     size_8 <- recursiveSizeNF tree_8
@@ -292,7 +227,7 @@ temporal_tree_node_size_test = do
 
     let tree_9
             = tree_8
-            & TEM.insert 0
+            & tem_insert 0
 
     size_9 <- recursiveSizeNF tree_9
 
@@ -336,7 +271,8 @@ insertion_size_test builder = do
     size_loop size_start
 
 
-deletion_size_test = do
+-- TODO: These parts are similar, refractor
+deletion_size_test per_build = do
     let size_start = 10
     let size_incr_mul = 1.3 :: Float
     let size_end = 4000
@@ -344,7 +280,7 @@ deletion_size_test = do
     putStrLn "n,per,splits"
 
     let size_loop size = do
-        let per = build_mock_binary_persistent_tree_high_out_degree size
+        let per = build_binary_persistent_tree_high_out_degree per_build size
         let (per_root_list, node_splits) = build_root_list per
 
         per_size <- recursiveSizeNF per_root_list
@@ -357,14 +293,14 @@ deletion_size_test = do
     size_loop size_start
 
 
-deletion_size_range_test = do
+deletion_size_range_test per_build = do
     let size_start = 1
     let size_end = 1000
 
     putStrLn "n,per,splits"
 
     let size_loop size = do
-        let per = build_mock_binary_persistent_tree_high_out_degree size
+        let per = build_binary_persistent_tree_high_out_degree per_build size
         let (per_root_list, node_splits) = build_root_list per
 
         per_size <- recursiveSizeNF per_root_list
@@ -429,7 +365,6 @@ sanity_size_test = do
     size <- recursiveSizeNF l
     putStrLn (show size)
 
-
     -- int_size <- recursiveSizeNF (1 :: Int)
     -- putStrLn (show int_size)
 
@@ -443,8 +378,8 @@ sanity_size_test = do
     -- putStrLn (show int_size)
 
 
-speed_test = do
-    let (tem, per) = build_mock_binary_tree_without_duplicates 100000 10
+speed_test tem_build per_build = do
+    let (tem, per) = build_binary_tree_without_duplicates tem_build per_build 100000 10
     let !per_f = force per
 
     start <- getTime ProcessCPUTime
@@ -456,7 +391,7 @@ speed_test = do
     print (end - start)
 
 
-update_insert_runtime_test = do
+update_insert_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
     let num = 1000
     let seed = 0
 
@@ -471,7 +406,7 @@ update_insert_runtime_test = do
 
             start_tem <- getTime ProcessCPUTime
             let tem_loop itr = do
-                let !new_tem = force (TEM.insert h tem_f)
+                let !new_tem = force (tem_insert h tem_f)
                 let itr' = itr + 1
                 when (itr' < repeats) (tem_loop itr')
             tem_loop 0
@@ -481,7 +416,7 @@ update_insert_runtime_test = do
 
             start_per <- getTime ProcessCPUTime
             let per_loop itr = do
-                let !new_per = force (PER_M.insert h per_f)
+                let !new_per = force (per_insert h per_f)
                 let itr' = itr + 1
                 when (itr' < repeats) (per_loop itr')
             per_loop 0
@@ -490,15 +425,15 @@ update_insert_runtime_test = do
             putStrLn (show n ++ "," ++ show (toNanoSecs (end_tem - start_tem)) ++ "," ++ show (toNanoSecs (end_per - start_per)))
             hFlush stdout
 
-            when ((tail elements) /= []) (loop (n + 1) (tail elements) (TEM.insert h tem_f) (PER_M.insert h per_f))
+            when ((tail elements) /= []) (loop (n + 1) (tail elements) (tem_insert h tem_f) (per_insert h per_f))
 
 
     let pureGen = mkStdGen seed
     let random_permutation = random_shuffle num pureGen
-    loop 0 random_permutation Leaf PER_M.construct_empty_tree
+    loop 0 random_permutation tem_empty per_empty
 
 
-update_insert_total_runtime_test = do
+update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
     let size_start = 10000
     let size_incr_mul = 1.3 :: Float
     let size_end = 1000000
@@ -514,12 +449,12 @@ update_insert_total_runtime_test = do
             let !random_permutation = random_shuffle size pureGen
 
             start_tem <- getTime ProcessCPUTime
-            let tem = foldl (flip TEM.insert) Leaf random_permutation
+            let tem = foldl (flip tem_insert) tem_empty random_permutation
             let !tem_f = force tem
             end_tem <- getTime ProcessCPUTime
 
             start_per <- getTime ProcessCPUTime
-            let per = foldl (flip PER_M.insert) PER_M.construct_empty_tree random_permutation
+            let per = foldl (flip per_insert) per_empty random_permutation
             let !per_f = force per
             end_per <- getTime ProcessCPUTime
 
@@ -537,24 +472,23 @@ update_insert_total_runtime_test = do
 
 
 main = do
-    -- small_temporal_tree_build
-    -- small_mock_persistent_tree_build
-    -- small_persistent_tree_build
+    small_temporal_tree_build TEM.get_func
+    -- small_persistent_tree_build PER_M.get_func
+    small_persistent_tree_build PER.get_func
     -- delete_persistent_compare
-    small_persistent_rotate
+    -- small_persistent_rotate
 
-    -- mock_correctness_test
-    -- correctness_test
-    -- speed_test
+    -- correctness_test TEM.get_func PER.get_func
+    -- speed_test TEM.get_func PER.get_func
     -- sanity_size_test
-    -- temporal_tree_node_size_test
-    -- insertion_size_test build_binary_tree_without_duplicates
-    -- deletion_size_test
-    -- deletion_size_range_test
+    -- temporal_tree_node_size_test TEM.get_func
+    -- insertion_size_test (build_binary_tree_without_duplicates TEM.get_func PER.get_func)
+    -- deletion_size_test PER.get_func
+    -- deletion_size_range_test PER.get_func
 
-    -- update_insert_runtime_test
-    -- update_insert_total_runtime_test
+    -- update_insert_runtime_test TEM.get_func PER.get_func
+    -- update_insert_total_runtime_test TEM.get_func PER.get_func
 
-    -- let (tem, per) = build_binary_tree_without_duplicates 10 1
+    -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
     -- let tree_10 : tem_rest = tem
     -- putStrLn (pretty_tree tree_10)

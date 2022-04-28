@@ -5,7 +5,11 @@ module Binary_Tree_persistent where
 
 import DataRecords
 import Persistent_update
-import Persistent_query
+
+
+get_func :: Ord s => PER_BST s
+get_func = (empty, insert, delete)
+
 
 empty :: PartialTree s
 empty = construct_empty_tree 2
@@ -44,6 +48,8 @@ delete' e (UserNode (elm, con, rep, [(left_tree, left_ret), (right_tree, right_r
 
 delete :: Ord e => e -> PartialTree e -> PartialTree e
 delete = update delete'
+
+
 
 
 rotate_right :: UserTree e -> Update e

@@ -5,7 +5,6 @@ module DataRecords where
 
 import GHC.Generics (Generic)
 import Control.DeepSeq
-import Data.Coerce
 
 
 -- Update structure
@@ -28,16 +27,6 @@ data TimeTree s
         }
     deriving (Eq, Show, Generic, NFData)
 
--- User viewed update structure
-
-type State s = ([TimeEdge], [(Int, s)], Int)
-type Update s = (Int, State s) -> (TimeTree s, State s)
-
-data UserTree s
-    = UserLeaf
-    | UserNode (s, s -> [Update s] -> Update s, Update s -> Update s, [(UserTree s, Update s)])
-    -- Input: element in the node, func to make node from element and fields, func to replace node by build tree, list of fields
-
 -- TODO: add dynamic information
 data PartialTree s = PartialTree
     { edgeFreezer :: [TimeEdge]
@@ -49,6 +38,30 @@ data PartialTree s = PartialTree
     , currentTree :: TimeTree s
     }
     deriving (Eq, Show, Generic, NFData)
+
+
+type TEM_BST s =
+    ( Tree s                 -- empty function
+    , s -> Tree s -> Tree s  -- insert function
+    , s -> Tree s -> Tree s  -- delete function
+    )
+
+type PER_BST s =
+    ( PartialTree s                        -- empty function
+    , s -> PartialTree s -> PartialTree s  -- insert function
+    , s -> PartialTree s -> PartialTree s  -- delete function
+    )
+
+
+-- User viewed update structure
+
+type State s = ([TimeEdge], [(Int, s)], Int)
+type Update s = (Int, State s) -> (TimeTree s, State s)
+
+data UserTree s
+    = UserLeaf
+    | UserNode (s, s -> [Update s] -> Update s, Update s -> Update s, [(UserTree s, Update s)])
+    -- Input: element in the node, func to make node from element and fields, func to replace node by build tree, list of fields
 
 
 -- Nodes used in DAG

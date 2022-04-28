@@ -7,6 +7,10 @@ module Binary_Tree_persistent_mock where
 import DataRecords
 
 
+get_func :: Ord s => PER_BST s
+get_func = (construct_empty_tree, insert, delete)
+
+
 -- Function to construct inital empty tree.
 -- There are no frozen edges and id's, the time is 0 and the degree 2.
 -- Initially, the empty tree is the root.
@@ -110,7 +114,7 @@ insert e partialTree =
 
 
 -- Function to delete element from binary tree
-delete :: Show s => Ord s => s -> PartialTree s -> PartialTree s
+delete :: Ord s => s -> PartialTree s -> PartialTree s
 delete e partialTree =
     -- Fetch next id and time
     let next_id = idCount partialTree in
