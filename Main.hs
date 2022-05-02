@@ -34,6 +34,8 @@ import System.Clock
 import System.Random
 
 
+-- Tests printing small trees to the terminal --
+
 small_temporal_tree_build (tem_empty, tem_insert, tem_delete) = do
     let tree =
             tem_empty
@@ -91,50 +93,40 @@ small_persistent_rotate = do
     putStrLn ("After rotation:\n" ++ pretty_tree (tree 8) ++ "\n")
 
 
-
+-- Tests for correctness --
 
 correctness_test tem_build per_build = do
     putStrLn "Running tests"
-
-    -- Insertion unbalanced binary tree
-    putStr "Insertion test ......... "
     hFlush stdout
 
-    let binary_insertion_success = binary_tree_test_insert tem_build per_build 1000
-    if binary_insertion_success
-        then putStrLn "Success"
-        else error "Test failed!"
+    let test_run name test =
+            do { putStr name
+               ; hFlush stdout
 
+               ; if test
+                    then putStrLn "Success"
+                    else error "Test failed!"
+               }
+        
+    -- Insertion
+    test_run
+        "Insertion test ............ "
+        (binary_tree_test_insert tem_build per_build 1000)
 
-    -- Deletion unbalanced binary tree
-    putStr "Deletion test .......... "
-    hFlush stdout
+    -- Deletion
+    test_run
+        "Deletion test ............. "
+        (binary_tree_test_delete tem_build per_build 1000)
 
-    let binary_deletion_success = binary_tree_test_delete tem_build per_build 1000
-    if binary_deletion_success
-        then putStrLn "Success"
-        else error "Test failed!"
-
-
-    -- Deletion unbalanced binary tree
+    -- Deletion, which creates notes with high out degree
     let size = 1000
-
-    putStr "Node non splitting test .... "
-    hFlush stdout
-
-    let binary_split_success = binary_tree_high_time_out_degree_node tem_build per_build build_non_split size
-    if binary_split_success
-        then putStrLn "Success"
-        else error "Test failed!"
-
-    putStr "Node splitting test .... "
-    hFlush stdout
-
-    let binary_split_success = binary_tree_high_time_out_degree_node tem_build per_build build size
-    if binary_split_success
-        then putStrLn "Success"
-        else error "Test failed!"
-
+    test_run
+        "Node non splitting test ... "
+        (binary_tree_high_time_out_degree_node tem_build per_build build_non_split size)
+    
+    test_run
+        "Node splitting test ....... "
+        (binary_tree_high_time_out_degree_node tem_build per_build build size)
 
 delete_persistent_compare = do
     let build_elm = [2, 5, 8, 3, 9, 0, 1]
@@ -186,6 +178,8 @@ delete_persistent_compare = do
 
     loop del_elm per_mock per_real
 
+
+-- Checks for size of objects -- 
 
 temporal_tree_node_size_test (tem_empty, tem_insert, _) = do
     let tree_0 = tem_empty :: Tree Int
@@ -239,79 +233,6 @@ temporal_tree_node_size_test (tem_empty, tem_insert, _) = do
     putStrLn ("Size of tree 7: " ++ show size_7)
     putStrLn ("Size of tree 8: " ++ show size_8)
     putStrLn ("Size of tree 9: " ++ show size_9)
-
-
-insertion_size_test builder = do
-    let size_start = 10
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 1000
-
-    let seed_start = 0
-    let seed_end = 30
-
-    putStrLn "seed,n,tem,per"
-
-    let size_loop size = do
-        let seed_loop seed = do
-            let (tem, per) = builder size seed
-            let per_root_list = build_root_list per
-
-            tem_size <- recursiveSizeNF tem
-            per_size <- recursiveSizeNF per_root_list
-
-            putStrLn (show seed ++ "," ++ show size ++ "," ++ show tem_size ++ "," ++ show per_size)
-            hFlush stdout
-
-            when (seed < seed_end - 1) (seed_loop (seed + 1))
-
-        seed_loop seed_start
-
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
-
-    size_loop size_start
-
-
--- TODO: These parts are similar, refractor
-deletion_size_test per_build = do
-    let size_start = 10
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 4000
-
-    putStrLn "n,per,splits"
-
-    let size_loop size = do
-        let per = build_binary_persistent_tree_high_out_degree per_build size
-        let (per_root_list, node_splits) = build_root_list per
-
-        per_size <- recursiveSizeNF per_root_list
-
-        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show node_splits)
-        hFlush stdout
-
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
-
-    size_loop size_start
-
-
-deletion_size_range_test per_build = do
-    let size_start = 1
-    let size_end = 1000
-
-    putStrLn "n,per,splits"
-
-    let size_loop size = do
-        let per = build_binary_persistent_tree_high_out_degree per_build size
-        let (per_root_list, node_splits) = build_root_list per
-
-        per_size <- recursiveSizeNF per_root_list
-
-        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show node_splits)
-        hFlush stdout
-
-        when (size < size_end) (size_loop (size + 1))
-
-    size_loop size_start
-
 
 sanity_size_test = do
     -- let l = [] :: [Int]
@@ -378,18 +299,79 @@ sanity_size_test = do
     -- putStrLn (show int_size)
 
 
-speed_test tem_build per_build = do
-    let (tem, per) = build_binary_tree_without_duplicates tem_build per_build 100000 10
-    let !per_f = force per
+-- Tests for size of build dag --
 
-    start <- getTime ProcessCPUTime
+insertion_size_test builder = do
+    let size_start = 10
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 1000
 
-    let per_root_list = build_root_list per_f
-    let !_ = force per_root_list
+    let seed_start = 0
+    let seed_end = 30
 
-    end <- getTime ProcessCPUTime
-    print (end - start)
+    putStrLn "seed,n,tem,per"
 
+    let size_loop size = do
+        let seed_loop seed = do
+            let (tem, per) = builder size seed
+            let per_root_list = build_root_list per
+
+            tem_size <- recursiveSizeNF tem
+            per_size <- recursiveSizeNF per_root_list
+
+            putStrLn (show seed ++ "," ++ show size ++ "," ++ show tem_size ++ "," ++ show per_size)
+            hFlush stdout
+
+            when (seed < seed_end - 1) (seed_loop (seed + 1))
+
+        seed_loop seed_start
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
+-- TODO: These two tests are similar, refractor?
+deletion_size_test per_build = do
+    let size_start = 10
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 4000
+
+    putStrLn "n,per,splits"
+
+    let size_loop size = do
+        let per = build_binary_persistent_tree_high_out_degree per_build size
+        let (per_root_list, node_splits) = build_root_list per
+
+        per_size <- recursiveSizeNF per_root_list
+
+        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show node_splits)
+        hFlush stdout
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
+deletion_size_range_test per_build = do
+    let size_start = 1
+    let size_end = 1000
+
+    putStrLn "n,per,splits"
+
+    let size_loop size = do
+        let per = build_binary_persistent_tree_high_out_degree per_build size
+        let (per_root_list, node_splits) = build_root_list per
+
+        per_size <- recursiveSizeNF per_root_list
+
+        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show node_splits)
+        hFlush stdout
+
+        when (size < size_end) (size_loop (size + 1))
+
+    size_loop size_start
+
+
+-- Tests for run time --
 
 update_insert_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
     let num = 1000
@@ -432,7 +414,6 @@ update_insert_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _)
     let random_permutation = random_shuffle num pureGen
     loop 0 random_permutation tem_empty per_empty
 
-
 update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
     let size_start = 10000
     let size_incr_mul = 1.3 :: Float
@@ -469,25 +450,39 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
 
     size_loop size_start
 
+dag_build_speed_test tem_build per_build = do
+    -- TODO: Only make the persistent tree, to not waste time and space
+    let (tem, per) = build_binary_tree_without_duplicates tem_build per_build 100000 10
+    let !per_f = force per
+
+    start <- getTime ProcessCPUTime
+
+    let per_root_list = build_root_list per_f
+    let !_ = force per_root_list
+
+    end <- getTime ProcessCPUTime
+    print (toNanoSecs (end - start))
 
 
 main = do
-    small_temporal_tree_build TEM.get_func
+    -- small_temporal_tree_build TEM.get_func
     -- small_persistent_tree_build PER_M.get_func
-    small_persistent_tree_build PER.get_func
-    -- delete_persistent_compare
+    -- small_persistent_tree_build PER.get_func
     -- small_persistent_rotate
+    
+    correctness_test TEM.get_func PER.get_func
+    -- delete_persistent_compare
 
-    -- correctness_test TEM.get_func PER.get_func
-    -- speed_test TEM.get_func PER.get_func
-    -- sanity_size_test
     -- temporal_tree_node_size_test TEM.get_func
+    -- sanity_size_test
+
     -- insertion_size_test (build_binary_tree_without_duplicates TEM.get_func PER.get_func)
     -- deletion_size_test PER.get_func
     -- deletion_size_range_test PER.get_func
 
     -- update_insert_runtime_test TEM.get_func PER.get_func
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
+    -- dag_build_speed_test TEM.get_func PER.get_func
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
     -- let tree_10 : tem_rest = tem
