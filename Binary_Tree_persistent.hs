@@ -7,7 +7,7 @@ import DataRecords
 import Persistent_update
 
 
-get_func :: Ord s => PER_BST s
+get_func :: Ord s => PER_BST s s
 get_func = (empty, insert, delete)
 
 

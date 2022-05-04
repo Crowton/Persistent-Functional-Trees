@@ -7,7 +7,7 @@ module Binary_Tree_persistent_mock where
 import DataRecords
 
 
-get_func :: Ord s => PER_BST s
+get_func :: Ord s => PER_BST s s
 get_func = (construct_empty_tree, insert, delete)
 
 

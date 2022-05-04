@@ -15,6 +15,8 @@ import Binary_Tree_temporal as TEM
 import Binary_Tree_persistent_mock as PER_M
 import Binary_Tree_persistent as PER
 
+import RBTree_temporal as RB
+
 import Persistent_update
 import DAG_construction
 
@@ -36,7 +38,8 @@ import System.Random
 
 -- Tests printing small trees to the terminal --
 
-small_temporal_tree_build (tem_empty, tem_insert, tem_delete) = do
+-- small_temporal_tree_build :: Show s => TEM_BST Int s -> IO ()
+small_temporal_tree_build (tem_empty, tem_insert, tem_delete) tem_contains = do
     let tree =
             tem_empty
             & tem_insert 3
@@ -46,7 +49,21 @@ small_temporal_tree_build (tem_empty, tem_insert, tem_delete) = do
             & tem_delete 3
 
     putStrLn (pretty_tree tree)
-    putStrLn ("Contains 1: " ++ (show (TEM.contains 1 tree)))
+    putStrLn ("Contains 1: " ++ (show (tem_contains 1 tree)) ++ "\n")
+
+    let tree2 =
+            tem_empty
+            & tem_insert 1
+            & tem_insert 2
+            & tem_insert 3
+            & tem_insert 4
+            & tem_insert 5
+            & tem_insert 6
+            & tem_insert 7
+            & tem_insert 8
+            & tem_insert 9
+
+    putStrLn (pretty_tree tree2)
 
 small_persistent_tree_build (per_empty, per_insert, per_delete) = do
     let persistent_tree =
@@ -494,7 +511,8 @@ dag_build_speed_test_from_insertions tem_build per_build = do
 
 
 main = do
-    -- small_temporal_tree_build TEM.get_func
+    -- small_temporal_tree_build TEM.get_func TEM.contains
+    small_temporal_tree_build RB.get_func RB.member
     -- small_persistent_tree_build PER_M.get_func
     -- small_persistent_tree_build PER.get_func
     -- small_persistent_rotate
@@ -511,7 +529,7 @@ main = do
 
     -- update_insert_runtime_test TEM.get_func PER.get_func
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
-    dag_build_speed_test_from_insertions TEM.get_func PER.get_func
+    -- dag_build_speed_test_from_insertions TEM.get_func PER.get_func
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
     -- let tree_10 : tem_rest = tem

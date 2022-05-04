@@ -207,7 +207,7 @@ build_root_list partialTree =
 
 
 -- Function to build the tree with node splits
-build :: Show s => PartialTree s -> (Int -> Tree s)
+build :: PartialTree s -> (Int -> Tree s)
 build partialTree =
     -- Build root list with the above function
     let (rootNodeList, _) = build_root_list partialTree in
@@ -220,7 +220,7 @@ build partialTree =
 
 
 -- Function to build the tree without node splits
-build_non_split :: Show s => PartialTree s -> (Int -> Tree s)
+build_non_split :: PartialTree s -> (Int -> Tree s)
 build_non_split partialTree =
     -- Extract all edges in current tree
     let finish_time = time partialTree in

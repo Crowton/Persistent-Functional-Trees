@@ -13,8 +13,6 @@ import DAG_construction
 
 import Data.List
 
-import Prettify
-
 
 rolls :: RandomGen b => Int -> b -> [Int]
 rolls n = take n . unfoldr (Just . uniformR (0, 2 * n))
@@ -23,7 +21,7 @@ random_shuffle :: RandomGen b => Int -> b -> [Int]
 random_shuffle n = shuffle' [1 .. n] n
 
 
-build_binary_tree :: TEM_BST s -> PER_BST s -> [s] -> ([Tree s], PartialTree s)
+build_binary_tree :: TEM_BST t s -> PER_BST t s -> [t] -> ([Tree s], PartialTree s)
 build_binary_tree (tem_empty, tem_insert, _) (per_empty, per_insert, _) =
     foldl (\(tem_h : tem_t, per) element ->
             let next_tem = tem_insert element tem_h in
@@ -32,13 +30,13 @@ build_binary_tree (tem_empty, tem_insert, _) (per_empty, per_insert, _) =
     ) ([tem_empty], per_empty)
 
 
-build_binary_tree_with_duplicates :: TEM_BST Int -> PER_BST Int -> Int -> Int -> ([Tree Int], PartialTree Int)
+build_binary_tree_with_duplicates :: TEM_BST Int s -> PER_BST Int s -> Int -> Int -> ([Tree s], PartialTree s)
 build_binary_tree_with_duplicates tem per num seed =
     let pureGen = mkStdGen seed in
     let random_elements = rolls num pureGen in
     build_binary_tree tem per random_elements
 
-build_binary_tree_without_duplicates :: TEM_BST Int -> PER_BST Int -> Int -> Int -> ([Tree Int], PartialTree Int)
+build_binary_tree_without_duplicates :: TEM_BST Int s -> PER_BST Int s -> Int -> Int -> ([Tree s], PartialTree s)
 build_binary_tree_without_duplicates tem per num seed =
     let pureGen = mkStdGen seed in
     let random_permutation = random_shuffle num pureGen in
@@ -52,7 +50,7 @@ get_high_out_degree_paths num =
     )
 
 
-build_binary_persistent_tree_high_out_degree :: PER_BST Int -> Int -> PartialTree Int
+build_binary_persistent_tree_high_out_degree :: PER_BST Int s -> Int -> PartialTree s
 build_binary_persistent_tree_high_out_degree (per_empty, per_insert, per_delete) num =
     let (first_path, second_path) = get_high_out_degree_paths num in
 
@@ -73,7 +71,7 @@ build_binary_persistent_tree_high_out_degree (per_empty, per_insert, per_delete)
     persistent_tree
 
 
-binary_tree_test_insert :: TEM_BST Int -> PER_BST Int -> Int -> Bool
+binary_tree_test_insert :: Eq s => TEM_BST Int s -> PER_BST Int s -> Int -> Bool
 binary_tree_test_insert tem per num =
     let (temporal_list, persistent_tree) = build_binary_tree_with_duplicates tem per num 42 in
     let build_persistent_tree = build persistent_tree in
@@ -84,9 +82,9 @@ binary_tree_test_insert tem per num =
 
 
 
--- TODO: mere refractorx
--- Refractor at lave træerne? Meget af det er ens
-binary_tree_test_delete :: TEM_BST Int -> PER_BST Int -> Int -> Bool
+-- TODO: more refractor
+-- Refractor creating the trees? They are created almost the same
+binary_tree_test_delete :: Eq s => TEM_BST Int s -> PER_BST Int s -> Int -> Bool
 binary_tree_test_delete (tem_empty, tem_insert, tem_delete) (per_empty, per_insert, per_delete) num =
     let insert_seed = 42 in
     let delete_seed = 142 in
@@ -133,7 +131,7 @@ binary_tree_test_delete (tem_empty, tem_insert, tem_delete) (per_empty, per_inse
 -- By deleting the element to the right repeatly, the parent gets high out degree,
 -- which the dag construction then needs to make smaller
 -- To make it worse, each node have a second other child, which is never touched, to force more splits
-binary_tree_high_time_out_degree_node :: TEM_BST Int -> PER_BST Int -> (PartialTree Int -> Int -> Tree Int) -> Int -> Bool
+binary_tree_high_time_out_degree_node :: Eq s => TEM_BST Int s -> PER_BST Int s -> (PartialTree s -> Int -> Tree s) -> Int -> Bool
 binary_tree_high_time_out_degree_node (tem_empty, tem_insert, tem_delete) (per_empty, per_insert, per_delete) builder num =
     let (first_path, second_path) = get_high_out_degree_paths num in
 

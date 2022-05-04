@@ -7,7 +7,7 @@ import qualified Data.List as L
 import qualified Data.Map.Strict as MB
 
 
-construct :: Show s => Int -> MB.Map Int (Maybe (FrozenNode s)) -> Int -> Tree s
+construct ::  Int -> MB.Map Int (Maybe (FrozenNode s)) -> Int -> Tree s
 construct fieldCount rootMap time =
     let root = case MB.lookupLE time rootMap of
             Nothing -> error ("No root at time " ++ show time ++ "!")

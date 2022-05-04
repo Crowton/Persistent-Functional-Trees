@@ -6,7 +6,7 @@ module Binary_Tree_temporal where
 import DataRecords
 
 
-get_func :: Ord s => TEM_BST s
+get_func :: Ord s => TEM_BST s s
 get_func = (Leaf, insert, delete)
 
 

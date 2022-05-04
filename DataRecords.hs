@@ -40,16 +40,16 @@ data PartialTree s = PartialTree
     deriving (Eq, Show, Generic, NFData)
 
 
-type TEM_BST s =
+type TEM_BST t s =
     ( Tree s                 -- empty function
-    , s -> Tree s -> Tree s  -- insert function
-    , s -> Tree s -> Tree s  -- delete function
+    , t -> Tree s -> Tree s  -- insert function
+    , t -> Tree s -> Tree s  -- delete function
     )
 
-type PER_BST s =
+type PER_BST t s =
     ( PartialTree s                        -- empty function
-    , s -> PartialTree s -> PartialTree s  -- insert function
-    , s -> PartialTree s -> PartialTree s  -- delete function
+    , t -> PartialTree s -> PartialTree s  -- insert function
+    , t -> PartialTree s -> PartialTree s  -- delete function
     )
 
 
