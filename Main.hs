@@ -450,18 +450,47 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
 
     size_loop size_start
 
-dag_build_speed_test tem_build per_build = do
-    -- TODO: Only make the persistent tree, to not waste time and space
-    let (tem, per) = build_binary_tree_without_duplicates tem_build per_build 100000 10
-    let !per_f = force per
+dag_build_speed_test_from_insertions tem_build per_build = do
+    let size_start = 1000
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 400000
 
-    start <- getTime ProcessCPUTime
+    let seed_start = 0
+    let seed_end = 30
 
-    let per_root_list = build_root_list per_f
-    let !_ = force per_root_list
+    let repeats = 10000000
 
-    end <- getTime ProcessCPUTime
-    print (toNanoSecs (end - start))
+    putStrLn ("repeats," ++ show repeats)
+    putStrLn "seed,n,nanotime"
+
+    let size_loop size = do
+        let seed_loop seed = do
+            -- TODO: only build persistent tree to save time?
+            let (_, per) = build_binary_tree_without_duplicates tem_build per_build size seed
+            let !per_f = force per
+
+            !start <- getTime ProcessCPUTime
+
+            let loop itr = do
+                let per_tree = build per_f
+                let !_ = force per_tree
+                let itr' = itr + 1
+                when (itr' < repeats) (loop itr')
+            
+            loop 0
+
+            !end <- getTime ProcessCPUTime
+
+            putStrLn (show seed ++ "," ++ show size ++ "," ++ show (toNanoSecs (end - start)))
+            hFlush stdout
+
+            when (seed < seed_end - 1) (seed_loop (seed + 1))
+
+        seed_loop seed_start
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
 
 
 main = do
@@ -470,7 +499,7 @@ main = do
     -- small_persistent_tree_build PER.get_func
     -- small_persistent_rotate
     
-    correctness_test TEM.get_func PER.get_func
+    -- correctness_test TEM.get_func PER.get_func
     -- delete_persistent_compare
 
     -- temporal_tree_node_size_test TEM.get_func
@@ -482,7 +511,7 @@ main = do
 
     -- update_insert_runtime_test TEM.get_func PER.get_func
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
-    -- dag_build_speed_test TEM.get_func PER.get_func
+    dag_build_speed_test_from_insertions TEM.get_func PER.get_func
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
     -- let tree_10 : tem_rest = tem
