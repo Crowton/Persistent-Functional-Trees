@@ -16,6 +16,7 @@ import Binary_Tree_persistent_mock as PER_M
 import Binary_Tree_persistent as PER
 
 import RBTree_temporal as RB
+-- import RBTree_persistent as RB_per
 
 import Persistent_update
 import DAG_construction
@@ -62,6 +63,7 @@ small_temporal_tree_build (tem_empty, tem_insert, tem_delete) tem_contains = do
             & tem_insert 7
             & tem_insert 8
             & tem_insert 9
+            & tem_delete 4
 
     putStrLn (pretty_tree tree2)
 
@@ -512,12 +514,12 @@ dag_build_speed_test_from_insertions tem_build per_build = do
 
 main = do
     -- small_temporal_tree_build TEM.get_func TEM.contains
-    small_temporal_tree_build RB.get_func RB.member
+    -- small_temporal_tree_build RB.get_func RB.member
     -- small_persistent_tree_build PER_M.get_func
-    -- small_persistent_tree_build PER.get_func
+    small_persistent_tree_build PER.get_func
     -- small_persistent_rotate
     
-    -- correctness_test TEM.get_func PER.get_func
+    correctness_test TEM.get_func PER.get_func
     -- delete_persistent_compare
 
     -- temporal_tree_node_size_test TEM.get_func

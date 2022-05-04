@@ -26,25 +26,22 @@ insert :: Ord e => e -> PartialTree e -> PartialTree e
 insert = update insert'
 
 
-get_max' :: Ord e => UserTree e -> Maybe e
-get_max' UserLeaf = Nothing
-get_max' (UserNode (elm, _, _, [_, (UserLeaf, _)])) = Just elm
-get_max' (UserNode (_, _, _, [_, (right_tree, _)])) = get_max' right_tree
-
-delete_max' :: UserTree e -> Update e
-delete_max' UserLeaf = leaf
-delete_max' (UserNode (elm, _, rep, [(_, left_ret), (UserLeaf, _)])) = rep left_ret
-delete_max' (UserNode (elm, con, _, [(left_tree, left_ret), (right_tree, right_ret)])) =
-    con elm [left_ret, delete_max' right_tree]
+extract_max' :: Ord e => UserTree e  -> (Update e, Maybe e)
+extract_max' UserLeaf = (leaf, Nothing)
+extract_max' (UserNode (elm, _, rep, [(_, left_ret), (UserLeaf, _)])) = (rep left_ret, Just elm)
+extract_max' (UserNode (elm, con, _, [(_, left_ret), (right_tree, _)])) =
+    let (right_ret', max) = extract_max' right_tree in
+    (con elm [left_ret, right_ret'], max)
 
 delete' :: Ord e => e -> UserTree e -> Update e
 delete' _ UserLeaf = leaf
 delete' e (UserNode (elm, con, rep, [(left_tree, left_ret), (right_tree, right_ret)]))
-  | e == elm = case get_max' left_tree of
-                   Nothing -> rep right_ret
-                   Just elm' -> con elm' [delete_max' left_tree, right_ret]
-  | e < elm = con elm [delete' e left_tree, right_ret]
-  | otherwise = con elm [left_ret, delete' e right_tree]
+    | e == elm = let (left_ret', max) = extract_max' left_tree in
+                 case max of
+                    Nothing -> rep right_ret
+                    Just elm' -> con elm' [left_ret', right_ret]
+    | e < elm = con elm [delete' e left_tree, right_ret]
+    | otherwise = con elm [left_ret, delete' e right_tree]
 
 delete :: Ord e => e -> PartialTree e -> PartialTree e
 delete = update delete'
