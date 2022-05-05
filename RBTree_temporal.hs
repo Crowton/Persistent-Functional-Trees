@@ -40,7 +40,7 @@ turnR Leaf             = error "turnR"
 turnR (RBNode _ l x r) = RBNode R l x r
 
 turnB :: RBTree a -> RBTree a
-turnB Leaf           = error "turnB"
+turnB Leaf             = error "turnB"
 turnB (RBNode _ l x r) = RBNode B l x r
 
 turnB' :: RBTree a -> RBTree a
@@ -105,7 +105,7 @@ unbalancedR _ _ _ _ = error "unbalancedR"
 deleteMin' :: RBTree a -> (RBTreeBDel a, a)
 deleteMin' Leaf                                 = error "deleteMin'"
 deleteMin' (RBNode B Leaf x Leaf)               = ((Leaf, True), x)
-deleteMin' (RBNode R Leaf x r)                  = ((turnB r, False), x)
+deleteMin' (RBNode R Leaf x r)                  = ((turnB' r, False), x)
 deleteMin' (RBNode c l x r)                     = if d then (tD, m) else (tD', m)
   where
     ((l', d), m) = deleteMin' l

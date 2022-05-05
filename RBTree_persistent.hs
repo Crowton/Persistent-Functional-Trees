@@ -131,7 +131,7 @@ deleteMin' UserLeaf
 deleteMin' (UserNode ((B, x), _, rep, [(UserLeaf, _), (UserLeaf, _)]))
     = ((rep leaf, True), x)
 deleteMin' (UserNode ((B, x), _, rep, [(UserLeaf, _), (r_tree, _)]))
-    = ((rep (turnB r_tree), False), x)
+    = ((rep (turnB' r_tree), False), x)
 deleteMin' (UserNode ((c, x), con, _, [(l, _), (_, r_ret)]))
     = if d then (tD, m) else (tD', m)
   where
