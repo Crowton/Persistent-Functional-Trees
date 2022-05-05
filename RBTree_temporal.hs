@@ -55,27 +55,13 @@ insert kx t = turnB (insert' kx t)
 insert' :: Ord a => a -> RBTree a -> RBTree a
 insert' kx Leaf = RBNode R Leaf kx Leaf
 insert' kx s@(RBNode B l x r) = case compare kx x of
-    LT -> balanceL' (insert' kx l) x r
-    GT -> balanceR' l x (insert' kx r)
+    LT -> balanceL B (insert' kx l) x r
+    GT -> balanceR B l x (insert' kx r)
     EQ -> s
 insert' kx s@(RBNode R l x r) = case compare kx x of
     LT -> RBNode R (insert' kx l) x r
     GT -> RBNode R l x (insert' kx r)
     EQ -> s
-
-balanceL' :: RBTree a -> a -> RBTree a -> RBTree a
-balanceL' (RBNode R (RBNode R a x b) y c) z d =
-    RBNode R (RBNode B a x b) y (RBNode B c z d)
-balanceL' (RBNode R a x (RBNode R b y c)) z d =
-    RBNode R (RBNode B a x b) y (RBNode B c z d)
-balanceL' l x r = RBNode B l x r
-
-balanceR' :: RBTree a -> a -> RBTree a -> RBTree a
-balanceR' a x (RBNode R b y (RBNode R c z d)) =
-    RBNode R (RBNode B a x b) y (RBNode B c z d)
-balanceR' a x (RBNode R (RBNode R b y c) z d) =
-    RBNode R (RBNode B a x b) y (RBNode B c z d)
-balanceR' l x r = RBNode B l x r
 
 ----------------------------------------------------------------
 
@@ -117,11 +103,10 @@ unbalancedR _ _ _ _ = error "unbalancedR"
 ----------------------------------------------------------------
 
 deleteMin' :: RBTree a -> (RBTreeBDel a, a)
-deleteMin' Leaf                             = error "deleteMin'"
-deleteMin' (RBNode B Leaf x Leaf)             = ((Leaf, True), x)
-deleteMin' (RBNode B Leaf x r@(RBNode R _ _ _)) = ((turnB r, False), x)
-deleteMin' (RBNode R Leaf x r)                = ((r, False), x)
-deleteMin' (RBNode c l x r)                   = if d then (tD, m) else (tD', m)
+deleteMin' Leaf                                 = error "deleteMin'"
+deleteMin' (RBNode B Leaf x Leaf)               = ((Leaf, True), x)
+deleteMin' (RBNode R Leaf x r)                  = ((turnB r, False), x)
+deleteMin' (RBNode c l x r)                     = if d then (tD, m) else (tD', m)
   where
     ((l', d), m) = deleteMin' l
     tD  = unbalancedR c l' x r

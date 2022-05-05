@@ -192,6 +192,19 @@ tree_to_update func upd (currentTime, state) =
     func (create_user_tree tree) (currentTime, new_state)
 
 
+{-
+-- Help function, to chain user functions, which are (UserTree -> (Update, t))
+tree2_to_update :: Eq s => (UserTree s -> (Update s, t)) -> Update s -> (Update s, t)
+tree2_to_update func upd (currentTime, state) =
+    -- Run the update parameter, the function needs, to get an intermediate state and TimeTree
+    let (tree, new_state) = upd (currentTime, state) in
+    
+    -- Convert the TimeTree back to UserTree, and call the user function with this parameter
+    let (upd_res, v) = func (create_user_tree tree) in
+    (upd_res (currentTime, new_state), v)
+-}
+
+
 -- Decorator function for user functions
 -- User function takes a value and UserTree input and produce an Update
 -- This is used to perform the relevent updates to the persitent tree structure,

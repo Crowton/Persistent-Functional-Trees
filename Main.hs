@@ -514,12 +514,12 @@ dag_build_speed_test_from_insertions tem_build per_build = do
 
 main = do
     -- small_temporal_tree_build TEM.get_func TEM.contains
-    -- small_temporal_tree_build RB.get_func RB.member
+    small_temporal_tree_build RB.get_func RB.member
     -- small_persistent_tree_build PER_M.get_func
-    small_persistent_tree_build PER.get_func
+    -- small_persistent_tree_build PER.get_func
     -- small_persistent_rotate
     
-    correctness_test TEM.get_func PER.get_func
+    -- correctness_test TEM.get_func PER.get_func
     -- delete_persistent_compare
 
     -- temporal_tree_node_size_test TEM.get_func
