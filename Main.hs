@@ -18,6 +18,8 @@ import Binary_Tree_persistent as PER
 import RBTree_temporal as RB
 -- import RBTree_persistent as RB_per
 
+import qualified Random_access_list_temporal as RAL
+
 import Persistent_update
 import DAG_construction
 
@@ -110,6 +112,38 @@ small_persistent_rotate = do
 
     putStrLn ("Before rotation:\n" ++ pretty_tree (tree 7) ++ "\n")
     putStrLn ("After rotation:\n" ++ pretty_tree (tree 8) ++ "\n")
+
+small_temporal_list_build = do
+    let list =
+            RAL.empty
+            & RAL.cons 1
+            & RAL.cons 2
+            & RAL.cons 3
+            & RAL.cons 4
+            & RAL.cons 5
+            & RAL.cons 6
+            & RAL.cons 7
+            & RAL.cons 8
+            & RAL.cons 9
+    
+    putStrLn ((pretty_tree list) ++ "\n")
+
+    putStrLn ("Head: " ++ show (RAL.head list) ++ "\n")
+    putStrLn ("Lookup 5: " ++ show (RAL.lookup 5 list) ++ "\n")
+
+    let list2 =
+            list
+            & RAL.update (7, 11)
+    
+    putStrLn ((pretty_tree list2) ++ "\n")
+
+    let list3 =
+            list2
+            & RAL.tail
+            & RAL.tail
+            & RAL.tail
+    
+    putStrLn ((pretty_tree list3) ++ "\n")
 
 
 -- Tests for correctness --
@@ -514,10 +548,11 @@ dag_build_speed_test_from_insertions tem_build per_build = do
 
 main = do
     -- small_temporal_tree_build TEM.get_func TEM.contains
-    small_temporal_tree_build RB.get_func RB.member
+    -- small_temporal_tree_build RB.get_func RB.member
     -- small_persistent_tree_build PER_M.get_func
     -- small_persistent_tree_build PER.get_func
     -- small_persistent_rotate
+    small_temporal_list_build
     
     -- correctness_test TEM.get_func PER.get_func
     -- delete_persistent_compare
