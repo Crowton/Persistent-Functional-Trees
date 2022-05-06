@@ -41,9 +41,9 @@ head = Q.query (\_ -> head') Nothing
 
 tail' :: Eq a => UserTree (Int, a) -> Update (Int, a)
 tail' UserLeaf = error "Empty list"
-tail' (UserNode (_, _, rep, [(UserLeaf, _), (UserLeaf, _), (_, rest)])) = rest
-tail' (UserNode (_, _, _, [(UserNode ((size1, elm1), con1, _, [(_, left1), (_, right1), (UserLeaf, _)]), _), (UserNode ((size2, elm2), con2, _, [(_, left2), (_, right2), (UserLeaf, _)]), _), (_, rest)])) =
-        con1 (size1, elm1) [left1, right1, con2 (size2, elm2) [left2, right2, rest]]
+tail' (UserNode (_, _, rep, [(UserLeaf, _), (UserLeaf, _), (_, rest)])) = rep rest
+tail' (UserNode (_, _, rep, [(UserNode (val1, con1, _, [(_, left1), (_, right1), (UserLeaf, _)]), _), (UserNode (val2, con2, _, [(_, left2), (_, right2), (UserLeaf, _)]), _), (_, rest)])) =
+        rep (con1 val1 [left1, right1, con2 val2 [left2, right2, rest]])
 
 tail :: Eq a => PartialTree (Int, a) -> PartialTree (Int, a)
 tail = P.update (\_ -> tail') Nothing

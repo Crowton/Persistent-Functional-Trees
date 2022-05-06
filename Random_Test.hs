@@ -9,13 +9,15 @@ import System.Random
 import System.Random.Shuffle
 
 import DataRecords
+import Random_access_list_temporal as RAL_tem
+import Random_access_list_persistent as RAL_per
 import DAG_construction
 
 import Data.List
 
 
-rolls :: RandomGen b => Int -> b -> [Int]
-rolls n = take n . unfoldr (Just . uniformR (0, 2 * n))
+rolls :: RandomGen b => Int -> Int -> b -> [Int]
+rolls n b = take n . unfoldr (Just . uniformR (0, b))
 
 random_shuffle :: RandomGen b => Int -> b -> [Int]
 random_shuffle n = shuffle' [1 .. n] n
@@ -33,7 +35,7 @@ build_binary_tree (tem_empty, tem_insert, _) (per_empty, per_insert, _) =
 build_binary_tree_with_duplicates :: TEM_BST Int s -> PER_BST Int s -> Int -> Int -> ([Tree s], PartialTree s)
 build_binary_tree_with_duplicates tem per num seed =
     let pureGen = mkStdGen seed in
-    let random_elements = rolls num pureGen in
+    let random_elements = rolls num (2 * num) pureGen in
     build_binary_tree tem per random_elements
 
 build_binary_tree_without_duplicates :: TEM_BST Int s -> PER_BST Int s -> Int -> Int -> ([Tree s], PartialTree s)
@@ -91,7 +93,7 @@ binary_tree_test_delete (tem_empty, tem_insert, tem_delete) (per_empty, per_inse
 
     -- Generate elements
     let insert_pureGen = mkStdGen insert_seed in
-    let initial_random_elements = rolls num insert_pureGen in
+    let initial_random_elements = rolls num (2 * num) insert_pureGen in
 
     -- Build random initial tree, using insertion
     let (temporal_base, persistent_base) =
@@ -104,7 +106,7 @@ binary_tree_test_delete (tem_empty, tem_insert, tem_delete) (per_empty, per_inse
 
     -- Generate elements
     let delete_pureGen = mkStdGen delete_seed in
-    let random_elements = rolls num delete_pureGen in
+    let random_elements = rolls num (2 * num) delete_pureGen in
 
     -- Make deletion on tree
     let (temporal_list, persistent_tree) =
@@ -165,3 +167,127 @@ binary_tree_high_time_out_degree_node (tem_empty, tem_insert, tem_delete) (per_e
     all (\(test_time, temporal_tree) ->
             temporal_tree == build_persistent_tree test_time
     ) (zip [check_time_from .. check_time_from + num] (reverse temporal_list))
+
+
+
+
+-- TODO: Comments and refractor building random access lists test
+
+
+random_access_list_cons :: Int -> Int -> Bool
+random_access_list_cons num ins_seed =
+    let ins_pureGen = mkStdGen ins_seed in
+    let ins_elements = random_shuffle num ins_pureGen in
+
+    let (ins_tem_list, ins_per) =
+            foldl (\(tem_h : tem_t, per) element ->
+                    let next_tem = RAL_tem.cons element tem_h in
+                    let next_per = RAL_per.cons element per in
+                    (next_tem : tem_h : tem_t, next_per)
+            ) ([RAL_tem.empty], RAL_per.empty) ins_elements
+    in
+
+    let build_persistent = build ins_per in
+
+    all (\(test_time, temporal_tree) ->
+            temporal_tree == build_persistent test_time
+    ) (zip [0 .. num] (reverse ins_tem_list))
+
+
+random_access_list_update_uniform :: Int -> Int -> Int -> Int -> Bool
+random_access_list_update_uniform num ins_seed upd_index_seed upd_elem_seed =
+    let ins_pureGen = mkStdGen ins_seed in
+    let ins_elements = random_shuffle num ins_pureGen in
+
+    let (ins_tem, ins_per) =
+            foldl (\(tem, per) element ->
+                    let next_tem = RAL_tem.cons element tem in
+                    let next_per = RAL_per.cons element per in
+                    (next_tem, next_per)
+            ) (RAL_tem.empty, RAL_per.empty) ins_elements
+    in
+    
+    let upd_index_pureGen = mkStdGen upd_index_seed in
+    let upd_indexes = rolls num (num - 1) upd_index_pureGen in
+    
+    let upd_elem_pureGen = mkStdGen upd_elem_seed in
+    let upd_elements = rolls num (4 * num) upd_elem_pureGen in
+
+    let (upd_tem_list, upd_per) =
+            foldl (\(tem_h : tem_t, per) (index, element) ->
+                    let next_tem = RAL_tem.update (index, element) tem_h in
+                    let next_per = RAL_per.update (index, element) per in
+                    (next_tem : tem_h : tem_t, next_per)
+            ) ([ins_tem], ins_per) (zip upd_indexes upd_elements)
+    in
+
+    let build_persistent = build upd_per in
+    
+    let check_time_from = time ins_per - 1 in
+
+    all (\(test_time, temporal_tree) ->
+            temporal_tree == build_persistent test_time
+    ) (zip [check_time_from .. check_time_from + num] (reverse upd_tem_list))
+
+
+random_access_list_tail :: Int -> Int -> Bool
+random_access_list_tail num ins_seed =
+    let ins_pureGen = mkStdGen ins_seed in
+    let ins_elements = random_shuffle num ins_pureGen in
+    
+    let (ins_tem, ins_per) =
+            foldl (\(tem, per) element ->
+                    let next_tem = RAL_tem.cons element tem in
+                    let next_per = RAL_per.cons element per in
+                    (next_tem, next_per)
+            ) (RAL_tem.empty, RAL_per.empty) ins_elements
+    in
+
+    let (tail_tem_list, tail_per) =
+            foldl (\(tem_h : tem_t, per) _ ->
+                    let next_tem = RAL_tem.tail tem_h in
+                    let next_per = RAL_per.tail per in
+                    (next_tem : tem_h : tem_t, next_per)
+            ) ([ins_tem], ins_per) [0 .. num - 1]
+    in
+
+    let build_persistent = build tail_per in
+    
+    let check_time_from = time ins_per - 1 in
+
+    all (\(test_time, temporal_tree) ->
+            temporal_tree == build_persistent test_time
+    ) (zip [check_time_from .. check_time_from + num - 1] (reverse tail_tem_list))
+
+
+random_access_list_update_final_element :: Int -> Int -> Int -> Bool
+random_access_list_update_final_element num ins_seed upd_elem_seed =
+    let ins_pureGen = mkStdGen ins_seed in
+    let ins_elements = random_shuffle num ins_pureGen in
+
+    let (ins_tem, ins_per) =
+            foldl (\(tem, per) element ->
+                    let next_tem = RAL_tem.cons element tem in
+                    let next_per = RAL_per.cons element per in
+                    (next_tem, next_per)
+            ) (RAL_tem.empty, RAL_per.empty) ins_elements
+    in
+    
+    let upd_elem_pureGen = mkStdGen upd_elem_seed in
+    let upd_elements = rolls num (4 * num) upd_elem_pureGen in
+
+    let (upd_tem_list, upd_per) =
+            foldl (\(tem_h : tem_t, per) element ->
+                    let next_tem = RAL_tem.update (num - 1, element) tem_h in
+                    let next_per = RAL_per.update (num - 1, element) per in
+                    (next_tem : tem_h : tem_t, next_per)
+            ) ([ins_tem], ins_per) upd_elements
+    in
+
+    let build_persistent = build upd_per in
+    
+    let check_time_from = time ins_per - 1 in
+
+    all (\(test_time, temporal_tree) ->
+            temporal_tree == build_persistent test_time
+    ) (zip [check_time_from .. check_time_from + num] (reverse upd_tem_list))

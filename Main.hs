@@ -232,6 +232,39 @@ delete_persistent_compare = do
 
     loop del_elm per_mock per_real
 
+random_access_list_correctness = do
+    putStrLn "Running tests"
+    hFlush stdout
+
+    let test_run name test =
+            do { putStr name
+               ; hFlush stdout
+
+               ; if test
+                    then putStrLn "Success"
+                    else error "Test failed!"
+               }
+        
+    -- Cons
+    test_run
+        "Cons test .......... "
+        (random_access_list_cons 1000 42)
+
+    -- Update
+    test_run
+        "Update test ........ "
+        (random_access_list_update_uniform 1000 42 43 44)
+
+    -- Tail
+    test_run
+        "Tail test .......... "
+        (random_access_list_tail 5 42)
+
+    -- Update in end
+    test_run
+        "Update last tast ... "
+        (random_access_list_update_final_element 1000 42 43)
+
 
 -- Checks for size of objects -- 
 
@@ -553,10 +586,11 @@ main = do
     -- small_persistent_tree_build PER_M.get_func
     -- small_persistent_tree_build PER.get_func
     -- small_persistent_rotate
-    small_temporal_list_build
+    -- small_temporal_list_build
     
     -- correctness_test TEM.get_func PER.get_func
     -- delete_persistent_compare
+    random_access_list_correctness
 
     -- temporal_tree_node_size_test TEM.get_func
     -- sanity_size_test
