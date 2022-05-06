@@ -19,6 +19,7 @@ import RBTree_temporal as RB
 -- import RBTree_persistent as RB_per
 
 import qualified Random_access_list_temporal as RAL
+import qualified Random_access_list_persistent as RAL_per
 
 import Persistent_update
 import DAG_construction
