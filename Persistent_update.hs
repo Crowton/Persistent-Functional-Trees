@@ -21,20 +21,25 @@ construct_empty_tree degree =
     }
 
 
-id_func :: TimeTree s -> Update s
-id_func node (_, state) = (node, state)
+id_func :: t -> Update s t
+id_func val (_, state) = (val, state)
+
+chain_update :: (t -> Update s u) -> Update s t -> Update s u
+chain_update func upd (currentTime, state) =
+    let (val, new_state) = upd (currentTime, state) in
+    func val (currentTime, new_state)
 
 -- Help function to return an update, that produce a leaf
-leaf :: Update s
+leaf :: TreeUpdate s
 leaf = id_func TimeLeaf
 
 -- Help function to make user defined functions work as identity functions
 -- Can be used for some or all cases
-id_node :: UserTree s -> Update s
+id_node :: UserTree s -> TreeUpdate s
 id_node UserLeaf = leaf
 id_node (UserNode (x, con, _, fields)) = con x (map snd fields)
 
-field_update :: Int -> State s -> [Update s] -> ([TimeTree s], State s)
+field_update :: Int -> State s -> [TreeUpdate s] -> ([TimeTree s], State s)
 field_update currentTime state fields =
     -- Given a list of state functions for fields, produce a list of the field trees and the final state
     let (new_fields, new_state) =
@@ -66,7 +71,7 @@ create_new_node_from_edges elm fields (currentTime, (freezer, idMap, idCount)) =
 
 -- Function to produce new node by the user
 -- Must ONLY be called on UserLeaf cases!
-create_new_node :: s -> [Update s] -> Update s
+create_new_node :: s -> [TreeUpdate s] -> TreeUpdate s
 create_new_node elm fields (currentTime, state) =
     let (new_fields, field_state) = field_update currentTime state fields in
     create_new_node_from_edges elm new_fields (currentTime, field_state)
@@ -94,7 +99,7 @@ freeze_all_edges old_id fields (currentTime, (freezer, idMap, idCount)) =
     )
 
 
-replace_node_by_element :: Eq s => Int -> s -> [(Int, TimeTree s)] -> s -> [Update s] -> Update s
+replace_node_by_element :: Eq s => Int -> s -> [(Int, TimeTree s)] -> s -> [TreeUpdate s] -> TreeUpdate s
 replace_node_by_element old_id old_elm old_fields new_elm new_fields_func (currentTime, state) =
     -- Get list of fields and the state after production
     let (new_fields, field_state) = field_update currentTime state new_fields_func in
@@ -157,7 +162,7 @@ replace_node_by_element old_id old_elm old_fields new_elm new_fields_func (curre
             create_new_node_from_edges new_elm new_fields (currentTime, new_state)
 
 
-replace_node_by_tree :: Int -> [(Int, TimeTree s)] -> Update s -> Update s
+replace_node_by_tree :: Int -> [(Int, TimeTree s)] -> TreeUpdate s -> TreeUpdate s
 replace_node_by_tree old_id old_fields new_tree_func (currentTime, state) =
     -- Get new tree and state from the tree function
     let (new_tree, tree_state) = new_tree_func (currentTime, state) in
@@ -183,7 +188,7 @@ create_user_tree TimeNode {t_id=id, t_elm=elm, t_fields=fields} =
 
 
 -- Help function, to chain user functions, which are (UserTree -> Update)
-tree_to_update :: Eq s => (UserTree s -> Update s) -> Update s -> Update s
+tree_to_update :: Eq s => (UserTree s -> Update s t) -> TreeUpdate s -> Update s t
 tree_to_update func upd (currentTime, state) =
     -- Run the update parameter, the function needs, to get an intermediate state and TimeTree
     let (tree, new_state) = upd (currentTime, state) in
@@ -209,7 +214,7 @@ tree2_to_update func upd (currentTime, state) =
 -- User function takes a value and UserTree input and produce an Update
 -- This is used to perform the relevent updates to the persitent tree structure,
 -- to make the function then work on PersistentTree
-update :: Eq s => (t -> UserTree s -> Update s) -> t -> PartialTree s -> PartialTree s
+update :: Eq s => (t -> UserTree s -> TreeUpdate s) -> t -> PartialTree s -> PartialTree s
 update func val partialTree =
     -- Use the user suplied function to make the state update function and tree production
     let state_func = func val (create_user_tree (currentTree partialTree)) in

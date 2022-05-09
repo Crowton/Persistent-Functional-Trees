@@ -96,7 +96,7 @@ unbalancedR :: Color -> RBTree a -> a -> RBTree a -> (RBTree a, Bool)
 unbalancedR c l x r@(RBNode B _ _ _)
   = (balanceR B l x (turnR r), c == B)
 -- Taking one Red node from the right and adding it to the right as Black
-unbalancedR B l x (RBNode R rl@(RBNode B  _ _ _) rx rr)
+unbalancedR B l x (RBNode R rl@(RBNode B _ _ _) rx rr)
   = (RBNode B (balanceR B l x (turnR rl)) rx rr, False)
 unbalancedR _ _ _ _ = error "unbalancedR"
 

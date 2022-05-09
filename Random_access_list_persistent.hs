@@ -21,7 +21,7 @@ isempty :: PartialTree (Int, a) -> Bool
 isempty = Q.query (\_ -> isempty') Nothing
 
 
-cons' :: Eq a => a -> UserTree (Int, a) -> Update (Int, a)
+cons' :: Eq a => a -> UserTree (Int, a) -> TreeUpdate (Int, a)
 cons' x xs@(UserNode ((size1, elm1), con1, _, [(_, left1), (_, right1), (UserNode ((size2, elm2), con2, _, [(_, left2), (_, right2), (_, rest)]), _)])) =
     if size1 == size2
         then P.create_new_node (1 + size1 + size2, x) [con1 (size1, elm1) [left1, right1, P.leaf], con2 (size2, elm2) [left2, right2, P.leaf], rest]
@@ -39,7 +39,7 @@ head' (Node (_, x) _) = x
 head :: PartialTree (Int, a) -> a
 head = Q.query (\_ -> head') Nothing
 
-tail' :: Eq a => UserTree (Int, a) -> Update (Int, a)
+tail' :: Eq a => UserTree (Int, a) -> TreeUpdate (Int, a)
 tail' UserLeaf = error "Empty list"
 tail' (UserNode (_, _, rep, [(UserLeaf, _), (UserLeaf, _), (_, rest)])) = rep rest
 tail' (UserNode (_, _, rep, [(UserNode (val1, con1, _, [(_, left1), (_, right1), (UserLeaf, _)]), _), (UserNode (val2, con2, _, [(_, left2), (_, right2), (UserLeaf, _)]), _), (_, rest)])) =
@@ -60,7 +60,7 @@ lookup :: Int -> PartialTree (Int, a) -> a
 lookup = Q.query lookup'
 
 
-update' :: Eq a => (Int, a) -> UserTree (Int, a) -> Update (Int, a)
+update' :: Eq a => (Int, a) -> UserTree (Int, a) -> TreeUpdate (Int, a)
 update' _ UserLeaf = error "Index out of bounds"
 update' (i, y) t@(UserNode ((size, x), con, _, [(_, l), (_, r), (next, _)])) =
     if i < size
@@ -80,7 +80,7 @@ tree_lookup' i (Node (size, x) [left, right, _]) =
         then tree_lookup' (i - 1) left
         else tree_lookup' (i - 1 - size') right
 
-tree_update' :: (Int, a) -> UserTree (Int, a) -> Update (Int, a)
+tree_update' :: (Int, a) -> UserTree (Int, a) -> TreeUpdate (Int, a)
 tree_update' _ UserLeaf = error "Index out of bounds"
 tree_update' (0, y) (UserNode ((size, _), con, _, c)) = con (size, y) (map snd c)
 tree_update' (i, y) (UserNode ((size, x), con, _, [(left_tree, left_ret), (right_tree, right_ret), (_, c)])) =

@@ -56,11 +56,12 @@ type PER_BST t s =
 -- User viewed update structure
 
 type State s = ([TimeEdge], [(Int, s)], Int)
-type Update s = (Int, State s) -> (TimeTree s, State s)
+type Update s t = (Int, State s) -> (t, State s)
+type TreeUpdate s = Update s (TimeTree s)
 
 data UserTree s
     = UserLeaf
-    | UserNode (s, s -> [Update s] -> Update s, Update s -> Update s, [(UserTree s, Update s)])
+    | UserNode (s, s -> [TreeUpdate s] -> TreeUpdate s, TreeUpdate s -> TreeUpdate s, [(UserTree s, TreeUpdate s)])
     -- Input: element in the node, func to make node from element and fields, func to replace node by build tree, list of fields
 
 

@@ -16,7 +16,7 @@ import Binary_Tree_persistent_mock as PER_M
 import Binary_Tree_persistent as PER
 
 import RBTree_temporal as RB
--- import RBTree_persistent as RB_per
+import RBTree_persistent as RB_per
 
 import qualified Random_access_list_temporal as RAL
 import qualified Random_access_list_persistent as RAL_per
@@ -170,7 +170,7 @@ correctness_test tem_build per_build = do
     -- Deletion
     test_run
         "Deletion test ............. "
-        (binary_tree_test_delete tem_build per_build 1000)
+        (binary_tree_test_delete tem_build per_build 10)
 
     -- Deletion, which creates notes with high out degree
     let size = 1000
@@ -589,8 +589,9 @@ main = do
     -- small_temporal_list_build
     
     -- correctness_test TEM.get_func PER.get_func
+    correctness_test RB.get_func RB_per.get_func
     -- delete_persistent_compare
-    random_access_list_correctness
+    -- random_access_list_correctness
 
     -- temporal_tree_node_size_test TEM.get_func
     -- sanity_size_test
