@@ -105,8 +105,15 @@ deleteMin' UserLeaf
     = error "deleteMin'"
 deleteMin' (UserNode ((B, x), _, rep, [(UserLeaf, _), (UserLeaf, _)]))
     = id_func (id_func (rep leaf, True), x)
+
 deleteMin' (UserNode ((B, x), _, rep, [(UserLeaf, _), (r_tree, _)]))
     = id_func (id_func (rep (turnB' r_tree), False), x)
+
+deleteMin' (UserNode ((B, x), _, rep, [(UserLeaf, _), (r_tree@(UserNode ((R, _), _, _, _)), _)]))
+    = id_func (id_func (rep (turnB r_tree), False), x)
+deleteMin' (UserNode ((R, x), _, rep, [(UserLeaf, _), (_, r_ret)]))
+    = id_func (id_func (rep r_ret, False), x)
+
 deleteMin' (UserNode ((c, x), con, _, [(l, _), (_, r_ret)]))
     = chain_update
         (\(ld, m) -> 

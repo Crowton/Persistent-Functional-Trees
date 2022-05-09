@@ -170,7 +170,7 @@ correctness_test tem_build per_build = do
     -- Deletion
     test_run
         "Deletion test ............. "
-        (binary_tree_test_delete tem_build per_build 10)
+        (binary_tree_test_delete tem_build per_build 1000)
 
     -- Deletion, which creates notes with high out degree
     let size = 1000

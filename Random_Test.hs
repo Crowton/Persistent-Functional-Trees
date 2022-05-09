@@ -15,9 +15,6 @@ import DAG_construction
 
 import Data.List
 
-import Debug.Trace
-import Prettify
-
 
 rolls :: RandomGen b => Int -> Int -> b -> [Int]
 rolls n b = take n . unfoldr (Just . uniformR (0, b))
@@ -107,9 +104,6 @@ binary_tree_test_delete (tem_empty, tem_insert, tem_delete) (per_empty, per_inse
             ) (tem_empty, per_empty) initial_random_elements
     in
 
-    -- trace "\n" $
-    -- trace (pretty_tree temporal_base) $
-
     -- Generate elements
     let delete_pureGen = mkStdGen delete_seed in
     let random_elements = rolls num (2 * num) delete_pureGen in
@@ -117,10 +111,7 @@ binary_tree_test_delete (tem_empty, tem_insert, tem_delete) (per_empty, per_inse
     -- Make deletion on tree
     let (temporal_list, persistent_tree) =
             foldl (\(tem_h : tem_t, per) element ->
-                    -- trace (show element) $
                     let next_tem = tem_delete element tem_h in
-                    -- trace (pretty_tree next_tem) $
-                    -- trace "\n" $
                     let next_per = per_delete element per in
                     (next_tem : tem_h : tem_t, next_per)
             ) ([temporal_base], persistent_base) random_elements
