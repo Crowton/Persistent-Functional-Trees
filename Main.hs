@@ -37,6 +37,11 @@ import Control.Exception
 import Formatting.Clock
 import System.Clock
 
+import Data.IORef
+import Data.Time
+import System.IO
+import Control.Monad.IO.Class
+
 import System.Random
 
 
@@ -464,7 +469,7 @@ update_insert_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _)
     let num = 1000
     let seed = 0
 
-    let repeats = 10000000
+    let repeats = (1000 :: Int)
 
     putStrLn ("repeats," ++ show repeats)
     putStrLn "n,tem,per"
@@ -473,25 +478,31 @@ update_insert_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _)
 
             let !tem_f = force tem
 
-            start_tem <- getTime ProcessCPUTime
+            start_tem <- liftIO getCurrentTime
             let tem_loop itr = do
                 let !new_tem = force (tem_insert h tem_f)
                 let itr' = itr + 1
                 when (itr' < repeats) (tem_loop itr')
             tem_loop 0
-            end_tem <- getTime ProcessCPUTime
+            end_tem <- liftIO getCurrentTime
+
+            let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+
 
             let !per_f = force per
 
-            start_per <- getTime ProcessCPUTime
+            start_per <- liftIO getCurrentTime
             let per_loop itr = do
                 let !new_per = force (per_insert h per_f)
                 let itr' = itr + 1
                 when (itr' < repeats) (per_loop itr')
             per_loop 0
-            end_per <- getTime ProcessCPUTime
+            end_per <- liftIO getCurrentTime
 
-            putStrLn (show n ++ "," ++ show (toNanoSecs (end_tem - start_tem)) ++ "," ++ show (toNanoSecs (end_per - start_per)))
+            let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+
+            putStrLn (show n ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+
             hFlush stdout
 
             when ((tail elements) /= []) (loop (n + 1) (tail elements) (tem_insert h tem_f) (per_insert h per_f))
@@ -502,32 +513,41 @@ update_insert_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _)
     loop 0 random_permutation tem_empty per_empty
 
 update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
-    let size_start = 10000
+    let size_start = 48269 -- 10000
     let size_incr_mul = 1.3 :: Float
     let size_end = 1000000
 
     let seed_start = 0
-    let seed_end = 30
+    let seed_end = 15 -- 30
+
+    let repeats = 2  -- 10
 
     putStrLn "seed,n,tem,per"
 
     let size_loop size = do
         let seed_loop seed = do
-            let pureGen = mkStdGen seed
-            let !random_permutation = random_shuffle size pureGen
+            let repeat_loop itr = do
+                let pureGen = mkStdGen seed
+                let !random_permutation = random_shuffle size pureGen
 
-            start_tem <- getTime ProcessCPUTime
-            let tem = foldl (flip tem_insert) tem_empty random_permutation
-            let !tem_f = force tem
-            end_tem <- getTime ProcessCPUTime
+                start_tem <- liftIO getCurrentTime
+                let tem = foldl (flip tem_insert) tem_empty random_permutation
+                let !tem_f = force tem
+                end_tem <- liftIO getCurrentTime
+                let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
 
-            start_per <- getTime ProcessCPUTime
-            let per = foldl (flip per_insert) per_empty random_permutation
-            let !per_f = force per
-            end_per <- getTime ProcessCPUTime
+                start_per <- liftIO getCurrentTime
+                let per = foldl (flip per_insert) per_empty random_permutation
+                let !per_f = force per
+                end_per <- liftIO getCurrentTime
+                let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
 
-            putStrLn (show seed ++ "," ++ show size ++ "," ++ show (toNanoSecs (end_tem - start_tem)) ++ "," ++ show (toNanoSecs (end_per - start_per)))
-            hFlush stdout
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+                hFlush stdout
+
+                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+            repeat_loop 0
 
             when (seed < seed_end - 1) (seed_loop (seed + 1))
 
@@ -589,7 +609,7 @@ main = do
     -- small_temporal_list_build
     
     -- correctness_test TEM.get_func PER.get_func
-    correctness_test RB.get_func RB_per.get_func
+    -- correctness_test RB.get_func RB_per.get_func
     -- delete_persistent_compare
     -- random_access_list_correctness
 
@@ -601,7 +621,7 @@ main = do
     -- deletion_size_range_test PER.get_func
 
     -- update_insert_runtime_test TEM.get_func PER.get_func
-    -- update_insert_total_runtime_test TEM.get_func PER.get_func
+    update_insert_total_runtime_test TEM.get_func PER.get_func
     -- dag_build_speed_test_from_insertions TEM.get_func PER.get_func
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1

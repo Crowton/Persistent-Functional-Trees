@@ -11,7 +11,7 @@ set -e
 
 # -O2 -fno-full-laziness
 
-ghc Main.hs -o Main -odir out -hidir out -O2
+ghc Main.hs -o Main -odir out -hidir out  # -O2
 ./Main
 
 # ghc Binary_Tree_mock.hs -o Binary_Tree_mock
