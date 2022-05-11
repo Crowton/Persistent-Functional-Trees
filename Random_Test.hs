@@ -23,13 +23,21 @@ random_shuffle :: RandomGen b => Int -> b -> [Int]
 random_shuffle n = shuffle' [1 .. n] n
 
 
+apply_binary_tree_updates :: (t -> Tree s -> Tree s) -> (t -> PartialTree s -> PartialTree s) -> ([Tree s], PartialTree s) -> [t] -> ([Tree s], PartialTree s)
+apply_binary_tree_updates tem_update per_update =
+    foldl (\(tem_h : tem_t, per) element ->
+            let next_tem = tem_update element tem_h in
+            let next_per = per_update element per in
+            (next_tem : tem_h : tem_t, next_per)
+    )
+
 build_binary_tree :: TEM_BST t s -> PER_BST t s -> [t] -> ([Tree s], PartialTree s)
 build_binary_tree (tem_empty, tem_insert, _) (per_empty, per_insert, _) =
-    foldl (\(tem_h : tem_t, per) element ->
-            let next_tem = tem_insert element tem_h in
-            let next_per = per_insert element per in
-            (next_tem : tem_h : tem_t, next_per)
-    ) ([tem_empty], per_empty)
+    apply_binary_tree_updates tem_insert per_insert ([tem_empty], per_empty)
+
+debuild_binary_tree :: TEM_BST t s -> PER_BST t s -> ([Tree s], PartialTree s) -> [t] -> ([Tree s], PartialTree s)
+debuild_binary_tree (_, _, tem_delete) (_, _, per_delete) =
+    apply_binary_tree_updates tem_delete per_delete
 
 
 build_binary_tree_with_duplicates :: TEM_BST Int s -> PER_BST Int s -> Int -> Int -> ([Tree s], PartialTree s)
@@ -43,6 +51,17 @@ build_binary_tree_without_duplicates tem per num seed =
     let pureGen = mkStdGen seed in
     let random_permutation = random_shuffle num pureGen in
     build_binary_tree tem per random_permutation
+
+destroy_binary_tree_without_duplicates :: TEM_BST Int s -> PER_BST Int s -> Int -> Int -> ([Tree s], PartialTree s) -> ([Tree s], PartialTree s)
+destroy_binary_tree_without_duplicates tem per num seed initial_trees =
+    let pureGen = mkStdGen seed in
+    let random_permutation = random_shuffle num pureGen in
+    debuild_binary_tree tem per initial_trees random_permutation
+
+
+build_and_destroy_binary_tree_without_duplicates :: TEM_BST Int s -> PER_BST Int s -> Int -> Int -> ([Tree s], PartialTree s)
+build_and_destroy_binary_tree_without_duplicates tem per num seed =
+    destroy_binary_tree_without_duplicates tem per num (-seed) (build_binary_tree_without_duplicates tem per num seed)
 
 
 get_high_out_degree_paths :: Int -> ([Int], [Int])

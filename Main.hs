@@ -393,7 +393,7 @@ sanity_size_test = do
 
 -- Tests for size of build dag --
 
-insertion_size_test builder = do
+size_compare_test builder = do
     let size_start = 10
     let size_incr_mul = 1.3 :: Float
     let size_end = 1000
@@ -406,7 +406,7 @@ insertion_size_test builder = do
     let size_loop size = do
         let seed_loop seed = do
             let (tem, per) = builder size seed
-            let per_root_list = build_root_list per
+            let (per_root_list, _) = build_root_list per
 
             tem_size <- recursiveSizeNF tem
             per_size <- recursiveSizeNF per_root_list
@@ -414,7 +414,7 @@ insertion_size_test builder = do
             putStrLn (show seed ++ "," ++ show size ++ "," ++ show tem_size ++ "," ++ show per_size)
             hFlush stdout
 
-            when (seed < seed_end - 1) (seed_loop (seed + 1))
+            when (seed + 1 < seed_end) (seed_loop (seed + 1))
 
         seed_loop seed_start
 
@@ -423,7 +423,7 @@ insertion_size_test builder = do
     size_loop size_start
 
 -- TODO: These two tests are similar, refractor?
-deletion_size_test per_build = do
+size_persistent_with_split_count_test per_build = do
     let size_start = 10
     let size_incr_mul = 1.3 :: Float
     let size_end = 4000
@@ -443,7 +443,7 @@ deletion_size_test per_build = do
 
     size_loop size_start
 
-deletion_size_range_test per_build = do
+size_persistent_with_split_count_range_test per_build = do
     let size_start = 1
     let size_end = 1000
 
@@ -554,6 +554,8 @@ dag_build_speed_test_from_insertions tem_build per_build = do
     size_loop size_start
 
 
+
+
 main = do
     -- small_temporal_tree_build TEM.get_func TEM.contains
     -- small_temporal_tree_build RB.get_func RB.member
@@ -570,11 +572,12 @@ main = do
     -- temporal_tree_node_size_test TEM.get_func
     -- sanity_size_test
 
-    -- insertion_size_test (build_binary_tree_without_duplicates TEM.get_func PER.get_func)
-    -- deletion_size_test PER.get_func
-    -- deletion_size_range_test PER.get_func
+    -- size_compare_test (build_binary_tree_without_duplicates TEM.get_func PER.get_func)
+    size_compare_test (build_and_destroy_binary_tree_without_duplicates TEM.get_func PER.get_func)
+    -- size_persistent_with_split_count_test PER.get_func
+    -- size_persistent_with_split_count_range_test PER.get_func
 
-    update_insert_total_runtime_test TEM.get_func PER.get_func
+    -- update_insert_total_runtime_test TEM.get_func PER.get_func
     -- dag_build_speed_test_from_insertions TEM.get_func PER.get_func
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1

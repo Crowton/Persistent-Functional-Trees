@@ -6,7 +6,7 @@ import numpy as np
 
 
 def plot_insertion_size():
-    with open("size_experiments_insertions_without_dup_large.csv") as f:
+    with open("data/bst_unbalanced_space_inserts.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
 
     tem_size_sum = defaultdict(lambda: [])
@@ -17,23 +17,60 @@ def plot_insertion_size():
         per_size_sum[n].append(per)
 
     def points(size_sum):
+        return sorted((n, v / n) for n, values in size_sum.items() for v in values)
+
+    def avg_points(size_sum):
         return sorted((n, sum(values) / len(values) / n) for n, values in size_sum.items())
 
 
-    plt.plot(*zip(*points(tem_size_sum)), "o:", label="Temporal size")
-    plt.plot(*zip(*points(per_size_sum)), "o:", label="Persistent size")
+    plt.plot(*zip(*points(tem_size_sum)), ".", label="Temporal size for fixed seed", color="Black")
+    plt.plot(*zip(*avg_points(tem_size_sum)), "o:", label="Average Temporal size", color="Blue")
+    plt.plot(*zip(*avg_points(per_size_sum)), "o:", label="Persistent size", color="Orange")
 
-    plt.title("Average Space Experiment\nWith only Insertion Updates")
-    plt.xlabel("Number of Insertions")
-    plt.ylabel("Space usage (bytes) / Insertions")
+    plt.title("Space Experiment\nUnbalanced BST with only Insertion Updates")
+    plt.xlabel("Number of Updates")
+    plt.ylabel("Space usage (bytes) / Updates")
 
     plt.xscale("log")
 
     plt.legend()
     plt.show()
-    # plt.savefig("plots/size_insertion_without_duplicates.pdf")
 
 
+def plot_insertion_deletion_size():
+    with open("data/bst_unbalanced_space_insert_and_delete.csv") as f:
+        data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
+
+    tem_size_sum = defaultdict(lambda: [])
+    per_size_sum = defaultdict(lambda: [])
+
+    for _, n, tem, per in data:
+        tem_size_sum[n].append(tem)
+        per_size_sum[n].append(per)
+
+    def points(size_sum):
+        return sorted(((n * 2), v / (2 * n)) for n, values in size_sum.items() for v in values)
+
+    def avg_points(size_sum):
+        return sorted(((n * 2), sum(values) / len(values) / (n * 2)) for n, values in size_sum.items())
+
+
+    plt.plot(*zip(*points(tem_size_sum)), ".", label="Temporal size for fixed seed", color="Black")
+    plt.plot(*zip(*avg_points(tem_size_sum)), "o:", label="Average Temporal size", color="Blue")
+    plt.plot(*zip(*points(per_size_sum)), ".", label="Persistent size for fixed seed", color="Grey")
+    plt.plot(*zip(*avg_points(per_size_sum)), "o:", label="Average Persistent size", color="Orange")
+
+    plt.title("Space Experiment\nUnbalanced BST with Insertion and Deletion Updates")
+    plt.xlabel("Number of Updates")
+    plt.ylabel("Space usage (bytes) / Updates")
+
+    plt.xscale("log")
+
+    plt.legend()
+    plt.show()
+
+
+# NOT USED
 def plot_deletion_size():
     with open("size_experiments_worst_case_deletions_large.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
@@ -81,6 +118,7 @@ def plot_deletion_size():
     plt.show()
 
 
+# NOT USED
 def plot_deletion_size_with_node_splits():
     # with open("size_experiments_worst_case_deletions_large_with_node_split_count.csv") as f:
     with open("worst_case_delete_size_range.csv") as f:
@@ -118,13 +156,14 @@ def plot_update_runtime():
         batch_increase[n].append(per_avg / tem_avg)
         # batch_increase[n].append((per_avg - tem_avg) / tem_avg)
 
-    increase = [(n, t) for n, times in batch_increase.items() for t in times]
-    avg_increase = [(n, sum(times) / len(times)) for n, times in batch_increase.items()]
+    sorted_batch_increase = sorted(batch_increase.items())
+    increase = [(n, t) for n, times in sorted_batch_increase for t in times]
+    avg_increase = [(n, sum(times) / len(times)) for n, times in sorted_batch_increase]
 
     plt.plot(*zip(*increase), ".", color="black", label="Ratio from Average Time over fixed seed")
     plt.plot(*zip(*avg_increase), "o:", color="red", label="Ratio from Average Ratio of seeds")
     
-    plt.title("Average Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates")
+    plt.title("Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates")
     plt.xlabel("Number of Insertions")
     plt.ylabel("Persistent Runtime / Temporal Runtime")
 
@@ -135,7 +174,6 @@ def plot_update_runtime():
 
 
 if __name__ == "__main__":
-    # plot_insertion_size()
-    # plot_deletion_size()
-    # plot_deletion_size_with_node_splits()
-    plot_update_runtime()
+    plot_insertion_size()
+    # plot_insertion_deletion_size()
+    # plot_update_runtime()
