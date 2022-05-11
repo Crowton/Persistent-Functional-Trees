@@ -100,35 +100,41 @@ def plot_deletion_size_with_node_splits():
 
 
 def plot_update_runtime():
-    with open("initial_run_update_experiment.csv") as f:
-        data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
+    with open("bst_unbalanced_update_insert_total_time_FULL.csv") as f:
+        data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
+        data = [(int(seed), int(n), float(tem), float(per)) for seed, n, tem, per in data]
 
-    tem_time_sum = defaultdict(lambda: [])
-    per_time_sum = defaultdict(lambda: [])
+    batch_times = defaultdict(lambda: [])
+    for seed, n, tem, per in data:
+        batch_times[(seed, n)].append((tem, per))
+    
+    avg_batch_times = [
+        (seed, n, *[sum(times) / len(times) for times in zip(*values)])
+        for (seed, n), values in batch_times.items()
+    ]
 
-    for _, n, tem, per in data:
-        tem_time_sum[n].append(tem)
-        per_time_sum[n].append(per)
+    batch_increase = defaultdict(lambda: [])
+    for _, n, tem_avg, per_avg in avg_batch_times:
+        batch_increase[n].append(per_avg / tem_avg)
+        # batch_increase[n].append((per_avg - tem_avg) / tem_avg)
 
-    def points(time_sum):
-        return sorted((n, sum(values) / len(values) / n / 1000000) for n, values in time_sum.items())
+    increase = [(n, t) for n, times in batch_increase.items() for t in times]
+    avg_increase = [(n, sum(times) / len(times)) for n, times in batch_increase.items()]
 
-
-    plt.plot(*zip(*points(tem_time_sum)), "o:", label="Temporal time")
-    plt.plot(*zip(*points(per_time_sum)), "o:", label="Persistent time")
-
-    plt.title("Average Time Experiment\nWith only Insertion Updates")
+    plt.plot(*zip(*increase), ".", color="black")
+    plt.plot(*zip(*avg_increase), "o:", color="red")
+    
+    plt.title("Average Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates")
     plt.xlabel("Number of Insertions")
-    plt.ylabel("Total Time Usage (ms) / Insertions")
+    plt.ylabel("Persistent Runtime / Temporal Runtime")
 
     plt.xscale("log")
 
-    plt.legend()
     plt.show()
 
 
 if __name__ == "__main__":
     # plot_insertion_size()
     # plot_deletion_size()
-    plot_deletion_size_with_node_splits()
-    # plot_update_runtime()
+    # plot_deletion_size_with_node_splits()
+    plot_update_runtime()
