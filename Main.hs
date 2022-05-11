@@ -465,54 +465,8 @@ deletion_size_range_test per_build = do
 
 -- Tests for run time --
 
-update_insert_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
-    let num = 1000
-    let seed = 0
-
-    let repeats = (1000 :: Int)
-
-    putStrLn ("repeats," ++ show repeats)
-    putStrLn "n,tem,per"
-    let loop n elements tem per = do
-            let h = head elements
-
-            let !tem_f = force tem
-
-            start_tem <- liftIO getCurrentTime
-            let tem_loop itr = do
-                let !new_tem = force (tem_insert h tem_f)
-                let itr' = itr + 1
-                when (itr' < repeats) (tem_loop itr')
-            tem_loop 0
-            end_tem <- liftIO getCurrentTime
-
-            let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
-
-
-            let !per_f = force per
-
-            start_per <- liftIO getCurrentTime
-            let per_loop itr = do
-                let !new_per = force (per_insert h per_f)
-                let itr' = itr + 1
-                when (itr' < repeats) (per_loop itr')
-            per_loop 0
-            end_per <- liftIO getCurrentTime
-
-            let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
-
-            putStrLn (show n ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
-
-            hFlush stdout
-
-            when ((tail elements) /= []) (loop (n + 1) (tail elements) (tem_insert h tem_f) (per_insert h per_f))
-
-
-    let pureGen = mkStdGen seed
-    let random_permutation = random_shuffle num pureGen
-    loop 0 random_permutation tem_empty per_empty
-
 update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
+    -- TODO: scale seed and repeats autoamically
     let size_start = 48269 -- 10000
     let size_incr_mul = 1.3 :: Float
     let size_end = 1000000
@@ -620,7 +574,6 @@ main = do
     -- deletion_size_test PER.get_func
     -- deletion_size_range_test PER.get_func
 
-    -- update_insert_runtime_test TEM.get_func PER.get_func
     update_insert_total_runtime_test TEM.get_func PER.get_func
     -- dag_build_speed_test_from_insertions TEM.get_func PER.get_func
 
