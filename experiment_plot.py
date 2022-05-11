@@ -100,7 +100,7 @@ def plot_deletion_size_with_node_splits():
 
 
 def plot_update_runtime():
-    with open("bst_unbalanced_update_insert_total_time_FULL.csv") as f:
+    with open("data/bst_unbalanced_update_insert_total_time_FULL.csv") as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
         data = [(int(seed), int(n), float(tem), float(per)) for seed, n, tem, per in data]
 
@@ -121,8 +121,8 @@ def plot_update_runtime():
     increase = [(n, t) for n, times in batch_increase.items() for t in times]
     avg_increase = [(n, sum(times) / len(times)) for n, times in batch_increase.items()]
 
-    plt.plot(*zip(*increase), ".", color="black")
-    plt.plot(*zip(*avg_increase), "o:", color="red")
+    plt.plot(*zip(*increase), ".", color="black", label="Ratio from Average Time over fixed seed")
+    plt.plot(*zip(*avg_increase), "o:", color="red", label="Ratio from Average Ratio of seeds")
     
     plt.title("Average Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates")
     plt.xlabel("Number of Insertions")
@@ -130,6 +130,7 @@ def plot_update_runtime():
 
     plt.xscale("log")
 
+    plt.legend()
     plt.show()
 
 
