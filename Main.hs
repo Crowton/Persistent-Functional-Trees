@@ -528,15 +528,7 @@ dag_build_speed_test builder = do
         let repeats = if size < 5000 then 10 else 2
 
         let seed_loop seed = do
-            (per_empty, per_insert, per_delete)
-            -- TODO: this is similar to build and destroy method, refractor
-            let pureGen = mkStdGen seed
-            let random_permutation_insert = random_shuffle size pureGen
-
-            let pureGen = mkStdGen (-seed)
-            let random_permutation_delete = random_shuffle size pureGen
-
-            let per = foldl (flip per_delete) (foldl (flip per_insert) per_empty random_permutation_insert) random_permutation_delete
+            let per = builder size seed
             let !per_f = force per
 
             let repeat_loop itr = do
@@ -588,8 +580,9 @@ main = do
     -- size_persistent_with_split_count_range_test PER.get_func
 
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
-    let builder (per_empty, per_insert, per_delete) num seed =
-            -- TODO: this is similar to build and destroy method, refractor
+    
+    -- TODO: this is similar to build and destroy method, refractor
+    let builder (per_empty, per_insert, per_delete) size seed =
             let pureGen = mkStdGen seed in
             let random_permutation_insert = random_shuffle size pureGen in
 
