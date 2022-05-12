@@ -32,6 +32,7 @@ def plot_insertion_size():
     plt.ylabel("Space usage (bytes) / Updates")
 
     plt.xscale("log")
+    plt.ylim(ymin=0)
 
     plt.legend()
     plt.show()
@@ -40,6 +41,7 @@ def plot_insertion_size():
 def plot_insertion_deletion_size():
     with open("data/bst_unbalanced_space_insert_and_delete.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
+        data = [(seed, 2 * n, tem, per) for seed, n, tem, per in data]
 
     tem_size_sum = defaultdict(lambda: [])
     per_size_sum = defaultdict(lambda: [])
@@ -49,10 +51,10 @@ def plot_insertion_deletion_size():
         per_size_sum[n].append(per)
 
     def points(size_sum):
-        return sorted(((n * 2), v / (2 * n)) for n, values in size_sum.items() for v in values)
+        return sorted((n, v / n) for n, values in size_sum.items() for v in values)
 
     def avg_points(size_sum):
-        return sorted(((n * 2), sum(values) / len(values) / (n * 2)) for n, values in size_sum.items())
+        return sorted((n, sum(values) / len(values) / n) for n, values in size_sum.items())
 
 
     plt.plot(*zip(*points(tem_size_sum)), ".", label="Temporal size for fixed seed", color="Black")
@@ -65,6 +67,7 @@ def plot_insertion_deletion_size():
     plt.ylabel("Space usage (bytes) / Updates")
 
     plt.xscale("log")
+    plt.ylim(ymin=0)
 
     plt.legend()
     plt.show()
@@ -168,12 +171,52 @@ def plot_update_runtime():
     plt.ylabel("Persistent Runtime / Temporal Runtime")
 
     plt.xscale("log")
+    plt.ylim(ymin=0)
 
     plt.legend()
     plt.show()
 
 
+def plot_build_runtime():
+    with open("data/bst_unbalanced_dag_build_time_insert_and_delete.csv") as f:
+        data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
+        data = [(int(seed), 2 * int(n), float(time)) for seed, n, time in data]
+        data = [(seed, n, time / n) for seed, n, time in data]
+
+    batch_times = defaultdict(lambda: [])
+    for seed, n, time in data:
+        batch_times[(seed, n)].append(time)
+    
+    avg_batch_times = [
+        (seed, n, sum(times) / len(times))
+        for (seed, n), times in batch_times.items()
+    ]
+
+    avg_times = defaultdict(lambda: [])
+    for _, n, time_avg in avg_batch_times:
+        avg_times[n].append(time_avg)
+
+    sorted_avg_times = sorted(avg_times.items())
+    times = [(n, t) for n, times in sorted_avg_times for t in times]
+    avg = [(n, sum(times) / len(times)) for n, times in sorted_avg_times]
+
+    plt.plot(*zip(*times), ".", color="black", label="Average Time for fixed seed")
+    plt.plot(*zip(*avg), "o:", color="red", label="Average Time over seeds")
+
+    plt.title("DAG Build Time Experiment\nUnbalanced BST with random Insertion and Deletion Updates")
+    plt.xlabel("Number of Updates")
+    plt.ylabel("Runtime / Updates")
+
+    plt.xscale("log")
+    # plt.ylim(ymin=0)
+
+    plt.legend()
+    plt.show()
+
+
+
 if __name__ == "__main__":
-    plot_insertion_size()
+    # plot_insertion_size()
     # plot_insertion_deletion_size()
-    # plot_update_runtime()
+    plot_update_runtime()
+    plot_build_runtime()

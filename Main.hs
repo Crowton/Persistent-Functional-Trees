@@ -511,39 +511,49 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
 
     size_loop size_start
 
-dag_build_speed_test_from_insertions tem_build per_build = do
-    let size_start = 1000
+dag_build_speed_test builder = do
+    let size_start = 500
     let size_incr_mul = 1.3 :: Float
-    let size_end = 400000
+    let size_end = 20000
 
     let seed_start = 0
-    let seed_end = 30
+    -- let seed_end = 30
 
-    let repeats = 10000000
+    -- let repeats = 10
 
-    putStrLn ("repeats," ++ show repeats)
-    putStrLn "seed,n,nanotime"
+    putStrLn "seed,n,time"
 
     let size_loop size = do
+        let seed_end = if size < 5000 then 30 else 15
+        let repeats = if size < 5000 then 10 else 2
+
         let seed_loop seed = do
-            -- TODO: only build persistent tree to save time?
-            let (_, per) = build_binary_tree_without_duplicates tem_build per_build size seed
+            (per_empty, per_insert, per_delete)
+            -- TODO: this is similar to build and destroy method, refractor
+            let pureGen = mkStdGen seed
+            let random_permutation_insert = random_shuffle size pureGen
+
+            let pureGen = mkStdGen (-seed)
+            let random_permutation_delete = random_shuffle size pureGen
+
+            let per = foldl (flip per_delete) (foldl (flip per_insert) per_empty random_permutation_insert) random_permutation_delete
             let !per_f = force per
 
-            !start <- getTime ProcessCPUTime
+            let repeat_loop itr = do
+                -- Record building step
+                start <- liftIO getCurrentTime
+                let (root_list, _) = build_root_list per_f
+                let !root_list_f = force root_list
+                end <- liftIO getCurrentTime
 
-            let loop itr = do
-                let per_tree = build per_f
-                let !_ = force per_tree
-                let itr' = itr + 1
-                when (itr' < repeats) (loop itr')
-            
-            loop 0
+                let elapsedTime = realToFrac $ end `diffUTCTime` start
 
-            !end <- getTime ProcessCPUTime
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime)
+                hFlush stdout
 
-            putStrLn (show seed ++ "," ++ show size ++ "," ++ show (toNanoSecs (end - start)))
-            hFlush stdout
+                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+            repeat_loop 0
 
             when (seed < seed_end - 1) (seed_loop (seed + 1))
 
@@ -573,12 +583,22 @@ main = do
     -- sanity_size_test
 
     -- size_compare_test (build_binary_tree_without_duplicates TEM.get_func PER.get_func)
-    size_compare_test (build_and_destroy_binary_tree_without_duplicates TEM.get_func PER.get_func)
+    -- size_compare_test (build_and_destroy_binary_tree_without_duplicates TEM.get_func PER.get_func)
     -- size_persistent_with_split_count_test PER.get_func
     -- size_persistent_with_split_count_range_test PER.get_func
 
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
-    -- dag_build_speed_test_from_insertions TEM.get_func PER.get_func
+    let builder (per_empty, per_insert, per_delete) num seed =
+            -- TODO: this is similar to build and destroy method, refractor
+            let pureGen = mkStdGen seed in
+            let random_permutation_insert = random_shuffle size pureGen in
+
+            let pureGen = mkStdGen (-seed) in
+            let random_permutation_delete = random_shuffle size pureGen in
+
+            foldl (flip per_delete) (foldl (flip per_insert) per_empty random_permutation_insert) random_permutation_delete
+
+    dag_build_speed_test (builder PER.get_func)
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
     -- let tree_10 : tem_rest = tem
