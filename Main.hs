@@ -465,6 +465,72 @@ size_persistent_with_split_count_range_test per_build = do
 
 -- Tests for run time --
 
+sanity_runtime_check = do
+    let size_start = 1000
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 100000000
+
+    let seed_start = 0
+    let seed_end = 30
+
+    let repeats = 10
+
+    putStrLn "seed,n,time"
+
+    let size_loop size = do
+        let seed_loop seed = do
+            -- TODO: move this to generator code space
+            let tem_builder :: Ord e => [e] -> Tree e -> Tree e
+                tem_builder elements tree =
+                    case elements of
+                        [] -> tree
+                        _  -> let (left, mid : right) = splitAt ((length elements) `div` 2) elements in
+                              tem_builder right (tem_builder left (TEM.insert mid tree))
+            
+            let tem = tem_builder [1 .. size] Leaf
+            let !tem_f = force tem
+
+            let pureGen = mkStdGen seed
+            let query_elements = random_shuffle size pureGen
+            let !query_elements_f = force query_elements
+
+            let repeat_loop itr = do
+                start <- liftIO getCurrentTime
+
+                let query_loop elms = do
+                    let q = head elms
+                    
+                    let res = TEM.contains q tem_f
+                    let !res_f = force res
+
+                    when ((tail elms) /= []) (query_loop (tail elms))
+                
+                query_loop query_elements_f
+
+                -- TODO: is this better? Or is there allocation issues?
+                -- let res = map (\elm -> TEM.contains elm tem_f) query_elements_f
+                -- let !res_f = force res
+
+                end <- liftIO getCurrentTime
+
+                let elapsedTime = realToFrac $ end `diffUTCTime` start
+
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime)
+                hFlush stdout
+
+                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+            repeat_loop 0
+
+            when (seed < seed_end - 1) (seed_loop (seed + 1))
+
+        seed_loop seed_start
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
+
 update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
     -- TODO: scale seed and repeats autoamically
     let size_start = 48269 -- 10000
@@ -579,9 +645,11 @@ main = do
     -- size_persistent_with_split_count_test PER.get_func
     -- size_persistent_with_split_count_range_test PER.get_func
 
+    sanity_runtime_check
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
     
     -- TODO: this is similar to build and destroy method, refractor
+    -- TODO: Move to random test file
     let builder (per_empty, per_insert, per_delete) size seed =
             let pureGen = mkStdGen seed in
             let random_permutation_insert = random_shuffle size pureGen in

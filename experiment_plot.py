@@ -214,9 +214,47 @@ def plot_build_runtime():
     plt.show()
 
 
+def plot_sanity_test_runtime():
+    with open("data/sanity_time_test_bst_query_all.csv") as f:
+        data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
+        data = [(int(seed), int(n), float(time)) for seed, n, time in data]
+        data = [(seed, n, time / n) for seed, n, time in data]
+
+    batch_times = defaultdict(lambda: [])
+    for seed, n, time in data:
+        batch_times[(seed, n)].append(time)
+    
+    avg_batch_times = [
+        (seed, n, sum(times) / len(times))
+        for (seed, n), times in batch_times.items()
+    ]
+
+    avg_times = defaultdict(lambda: [])
+    for _, n, time_avg in avg_batch_times:
+        avg_times[n].append(time_avg)
+
+    sorted_avg_times = sorted(avg_times.items())
+    times = [(n, t) for n, times in sorted_avg_times for t in times]
+    avg = [(n, sum(times) / len(times)) for n, times in sorted_avg_times]
+
+    plt.plot(*zip(*times), ".", color="black", label="Average Time for fixed seed")
+    plt.plot(*zip(*avg), "o:", color="red", label="Average Time over seeds")
+
+    plt.title("Sanity Time Experiment\nPerfect BST Query all nodes")
+    plt.xlabel("Number of Queries")
+    plt.ylabel("Runtime / Queries")
+
+    plt.xscale("log")
+    plt.ylim(ymin=0)
+
+    plt.legend()
+    plt.show()
+
+
 
 if __name__ == "__main__":
     # plot_insertion_size()
     # plot_insertion_deletion_size()
-    plot_update_runtime()
-    plot_build_runtime()
+    # plot_update_runtime()
+    # plot_build_runtime()
+    plot_sanity_test_runtime()
