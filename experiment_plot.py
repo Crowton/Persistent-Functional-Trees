@@ -4,6 +4,8 @@ from collections import defaultdict
 
 import numpy as np
 
+from math import log2
+
 
 def plot_insertion_size():
     with open("data/bst_unbalanced_space_inserts.csv") as f:
@@ -214,11 +216,39 @@ def plot_build_runtime():
     plt.show()
 
 
+def plot_worst_case_build_runtime():
+    with open("data/bst_unbalanced_dag_build_time_worst_case_insert_delete_leaf.csv") as f:
+        data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
+        data = [(3 * int(n), float(time), int(splits)) for n, time, splits in data]
+        data = [(n, time / n, splits) for n, time, splits in data]
+
+    batch_times = defaultdict(lambda: [])
+    for n, time, _ in data:
+        batch_times[n].append(time)
+    
+    sorted_batch_times = sorted(batch_times.items())
+    times = [(n, t) for n, times in sorted_batch_times for t in times]
+    avg = [(n, sum(times) / len(times)) for n, times in sorted_batch_times]
+
+    plt.plot(*zip(*times), ".", color="black", label="Times")
+    plt.plot(*zip(*avg), "o:", color="red", label="Average Time")
+
+    plt.title("DAG Build Time Experiment\nUnbalanced BST path with repeated Insertion and Deletion of leaf")
+    plt.xlabel("Number of Updates")
+    plt.ylabel("Runtime / Updates")
+
+    plt.xscale("log")
+    # plt.ylim(ymin=0)
+
+    plt.legend()
+    plt.show()
+
+
 def plot_sanity_test_runtime():
     with open("data/sanity_time_test_bst_query_all.csv") as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
         data = [(int(seed), int(n), float(time)) for seed, n, time in data]
-        data = [(seed, n, time / n) for seed, n, time in data]
+        data = [(seed, n, time / (n * log2(n) ** 4)) for seed, n, time in data]
 
     batch_times = defaultdict(lambda: [])
     for seed, n, time in data:
@@ -241,8 +271,8 @@ def plot_sanity_test_runtime():
     plt.plot(*zip(*avg), "o:", color="red", label="Average Time over seeds")
 
     plt.title("Sanity Time Experiment\nPerfect BST Query all nodes")
-    plt.xlabel("Number of Queries")
-    plt.ylabel("Runtime / Queries")
+    plt.xlabel("Number of Queries (q)")
+    plt.ylabel("Runtime / (q lg$^4$ q)")
 
     plt.xscale("log")
     plt.ylim(ymin=0)
@@ -257,4 +287,5 @@ if __name__ == "__main__":
     # plot_insertion_deletion_size()
     # plot_update_runtime()
     # plot_build_runtime()
+    # plot_worst_case_build_runtime()
     plot_sanity_test_runtime()

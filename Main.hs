@@ -532,7 +532,7 @@ sanity_runtime_check = do
 
 
 update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
-    -- TODO: scale seed and repeats autoamically
+    -- TODO: scale seed and repeats automaically
     let size_start = 48269 -- 10000
     let size_incr_mul = 1.3 :: Float
     let size_end = 1000000
@@ -577,7 +577,62 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
 
     size_loop size_start
 
-dag_build_speed_test builder = do
+update_insert_and_delete_total_runtime_test (tem_empty, tem_insert, tem_delete) (per_empty, per_insert, per_delete) = do
+    -- TODO: scale seed and repeats automaically
+    let size_start = 10000
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 1000000
+
+    let seed_start = 0
+    -- let seed_end = 30
+
+    -- let repeats = 10
+
+    putStrLn "seed,n,tem,per"
+
+    let size_loop size = do
+        let seed_end = if size < 25000 then 30 else 15
+        let repeats = if size < 25000 then 10 else 2
+
+        let seed_loop seed = do
+            let repeat_loop itr = do
+                let pureGen = mkStdGen seed
+                let !random_insert_permutation = random_shuffle size pureGen
+
+                let pureGen = mkStdGen (-seed)
+                let !random_delete_permutation = random_shuffle size pureGen
+
+                start_tem <- liftIO getCurrentTime
+                let tem_base = foldl (flip tem_insert) tem_empty random_insert_permutation
+                let tem = foldl (flip tem_delete) tem_base random_delete_permutation
+                let !tem_f = force tem
+                end_tem <- liftIO getCurrentTime
+                let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+
+                start_per <- liftIO getCurrentTime
+                let per_base = foldl (flip per_insert) per_empty random_insert_permutation
+                let per = foldl (flip per_delete) per_base random_delete_permutation
+                let !per_f = force per
+                end_per <- liftIO getCurrentTime
+                let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+                hFlush stdout
+
+                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+            repeat_loop 0
+
+            when (seed < seed_end - 1) (seed_loop (seed + 1))
+
+        seed_loop seed_start
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
+-- TODO: refracter to take builder function
+dag_build_insert_delete_speed_test (per_empty, per_insert, per_delete) = do
     let size_start = 500
     let size_incr_mul = 1.3 :: Float
     let size_end = 20000
@@ -594,19 +649,28 @@ dag_build_speed_test builder = do
         let repeats = if size < 5000 then 10 else 2
 
         let seed_loop seed = do
-            let per = builder size seed
+            -- TODO: this is similar to build and destroy method, refractor
+            -- TODO: Move to random test file
+            let pureGen = mkStdGen seed
+            let random_permutation_insert = random_shuffle size pureGen
+
+            let pureGen = mkStdGen (-seed)
+            let random_permutation_delete = random_shuffle size pureGen
+
+            let per = foldl (flip per_delete) (foldl (flip per_insert) per_empty random_permutation_insert) random_permutation_delete
             let !per_f = force per
 
             let repeat_loop itr = do
                 -- Record building step
                 start <- liftIO getCurrentTime
-                let (root_list, _) = build_root_list per_f
+                let (root_list, splits) = build_root_list per_f
                 let !root_list_f = force root_list
+                let !splits_f = force splits
                 end <- liftIO getCurrentTime
 
                 let elapsedTime = realToFrac $ end `diffUTCTime` start
 
-                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime)
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime ++ "," ++ show splits_f)
                 hFlush stdout
 
                 when (itr + 1 < repeats) (repeat_loop (itr + 1))
@@ -621,6 +685,42 @@ dag_build_speed_test builder = do
 
     size_loop size_start
 
+
+dag_build_worst_case_delete_speed_test (per_empty, per_insert, per_delete) = do
+    let size_start = 500
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 4000
+
+    let repeats = 30
+
+    putStrLn "n,time,splits"
+
+    let size_loop size = do
+        -- TRUE n = 3 * n
+        let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
+        let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
+        let !per_f = force per
+
+        let repeat_loop itr = do
+            -- Record building step
+            start <- liftIO getCurrentTime
+            let (root_list, splits) = build_root_list per_f
+            let !root_list_f = force root_list
+            let !splits_f = force splits
+            end <- liftIO getCurrentTime
+
+            let elapsedTime = realToFrac $ end `diffUTCTime` start
+
+            putStrLn (show size ++ "," ++ show elapsedTime ++ "," ++ show splits_f)
+            hFlush stdout
+
+            when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+        repeat_loop 0
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
 
 
 
@@ -645,21 +745,11 @@ main = do
     -- size_persistent_with_split_count_test PER.get_func
     -- size_persistent_with_split_count_range_test PER.get_func
 
-    sanity_runtime_check
+    -- sanity_runtime_check
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
-    
-    -- TODO: this is similar to build and destroy method, refractor
-    -- TODO: Move to random test file
-    let builder (per_empty, per_insert, per_delete) size seed =
-            let pureGen = mkStdGen seed in
-            let random_permutation_insert = random_shuffle size pureGen in
-
-            let pureGen = mkStdGen (-seed) in
-            let random_permutation_delete = random_shuffle size pureGen in
-
-            foldl (flip per_delete) (foldl (flip per_insert) per_empty random_permutation_insert) random_permutation_delete
-
-    dag_build_speed_test (builder PER.get_func)
+    update_insert_and_delete_total_runtime_test TEM.get_func PER.get_func
+    -- dag_build_insert_delete_speed_test PER.get_func
+    -- dag_build_worst_case_delete_speed_test PER.get_func
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
     -- let tree_10 : tem_rest = tem
