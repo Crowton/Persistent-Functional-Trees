@@ -142,8 +142,8 @@ def plot_deletion_size_with_node_splits():
     plt.show()
 
 
-def plot_update_runtime():
-    with open("data/bst_unbalanced_update_insert_total_time_FULL.csv") as f:
+def plot_update_runtime(path, title):
+    with open(path) as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
         data = [(int(seed), int(n), float(tem), float(per)) for seed, n, tem, per in data]
 
@@ -168,8 +168,8 @@ def plot_update_runtime():
     plt.plot(*zip(*increase), ".", color="black", label="Ratio from Average Time over fixed seed")
     plt.plot(*zip(*avg_increase), "o:", color="red", label="Ratio from Average Ratio of seeds")
     
-    plt.title("Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates")
-    plt.xlabel("Number of Insertions")
+    plt.title(title)
+    plt.xlabel("Number of Updates")
     plt.ylabel("Persistent Runtime / Temporal Runtime")
 
     plt.xscale("log")
@@ -285,7 +285,14 @@ def plot_sanity_test_runtime():
 if __name__ == "__main__":
     # plot_insertion_size()
     # plot_insertion_deletion_size()
-    # plot_update_runtime()
+    # plot_update_runtime(
+    #     "data/bst_unbalanced_update_insert_total_time_FULL.csv",
+    #     "Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates"
+    # )
+    plot_update_runtime(
+        "data/bst_unbalanced_update_insert_and_delete_total_time.csv",
+        "Update Time Increase Experiment\nUnbalanced BST with Insertion and Deletion Updates"
+    )
     # plot_build_runtime()
     # plot_worst_case_build_runtime()
-    plot_sanity_test_runtime()
+    # plot_sanity_test_runtime()
