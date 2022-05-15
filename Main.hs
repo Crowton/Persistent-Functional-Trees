@@ -422,6 +422,65 @@ size_compare_test builder = do
 
     size_loop size_start
 
+size_worst_case_compare_test (tem_empty, tem_insert, tem_delete) (per_empty, per_insert, per_delete) = do
+    let size_start = 10
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 10000
+
+    putStrLn "n,tem,per,splits"
+
+    let size_loop size = do
+        -- TRUE n = 3 * n
+        let (tem_base, per_base) = foldl (\(tem_h : tem_t, per) element ->
+                                            let next_tem = tem_insert element tem_h in
+                                            let next_per = per_insert element per in
+                                            (next_tem : tem_h : tem_t, next_per)
+                                   ) ([tem_empty], per_empty) [1 :: Int .. size]
+        
+        let (tem_final, per_final) = foldl (\(tem_h : tem_t, per) _ ->
+                                              let next_tem = tem_insert (size + 1) tem_h in
+                                              let next_next_tem = tem_delete (size + 1) next_tem in
+                                              let next_per = per_delete (size + 1) (per_insert (size + 1) per) in
+                                              (next_next_tem : next_tem : tem_h : tem_t, next_per)
+                                     ) (tem_base, per_base) [1 :: Int .. size]
+
+        let (per_root_list, splits) = build_root_list per_final
+
+        tem_size <- recursiveSizeNF tem_final
+        per_size <- recursiveSizeNF per_root_list
+
+        putStrLn (show size ++ "," ++ show tem_size ++ "," ++ show per_size ++ "," ++ show splits)
+        hFlush stdout
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
+
+size_worst_case_test (per_empty, per_insert, per_delete) = do
+    let size_start = 10
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 10000000
+
+    putStrLn "n,per,splits"
+
+    let size_loop size = do
+        -- TRUE n = 3 * n
+        let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
+        let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
+
+        let (per_root_list, splits) = build_root_list per
+
+        per_size <- recursiveSizeNF per_root_list
+
+        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show splits)
+        hFlush stdout
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
+
 -- TODO: These two tests are similar, refractor?
 size_persistent_with_split_count_test per_build = do
     let size_start = 10
@@ -531,6 +590,7 @@ sanity_runtime_check = do
     size_loop size_start
 
 
+-- TODO: similar??
 update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
     -- TODO: scale seed and repeats automaically
     let size_start = 48269 -- 10000
@@ -572,6 +632,43 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
             when (seed < seed_end - 1) (seed_loop (seed + 1))
 
         seed_loop seed_start
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
+update_insert_range_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
+    -- TODO: scale seed and repeats automaically
+    let size_start = 10000
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 10000000
+
+    let repeats = 20
+
+    putStrLn "n,tem,per"
+
+    let size_loop size = do
+        let repeat_loop itr = do
+            let !elements = [1 :: Int .. size]
+
+            start_tem <- liftIO getCurrentTime
+            let tem = foldl (flip tem_insert) tem_empty elements
+            let !tem_f = force tem
+            end_tem <- liftIO getCurrentTime
+            let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+
+            start_per <- liftIO getCurrentTime
+            let per = foldl (flip per_insert) per_empty elements
+            let !per_f = force per
+            end_per <- liftIO getCurrentTime
+            let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+
+            putStrLn (show size ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+            hFlush stdout
+
+            when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+        repeat_loop 0
 
         when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
 
@@ -632,6 +729,56 @@ update_insert_and_delete_total_runtime_test (tem_empty, tem_insert, tem_delete) 
     size_loop size_start
 
 -- TODO: refracter to take builder function
+dag_build_insert_only_speed_test (per_empty, per_insert, per_delete) = do
+    let size_start = 500
+    let size_incr_mul = 1.3 :: Float
+    let size_end = 20000000
+
+    let seed_start = 0
+    -- let seed_end = 30
+
+    -- let repeats = 10
+
+    putStrLn "seed,n,time"
+
+    let size_loop size = do
+        let seed_end = if size < 10000 then 30 else 15
+        let repeats = if size < 10000 then 10 else 2
+
+        let seed_loop seed = do
+            -- TODO: this is similar to build and destroy method, refractor
+            -- TODO: Move to random test file
+            let pureGen = mkStdGen seed
+            let random_permutation = random_shuffle size pureGen
+
+            let per = foldl (flip per_insert) per_empty random_permutation
+            let !per_f = force per
+
+            let repeat_loop itr = do
+                -- Record building step
+                start <- liftIO getCurrentTime
+                let (root_list, splits) = build_root_list per_f
+                let !root_list_f = force root_list
+                let !splits_f = force splits
+                end <- liftIO getCurrentTime
+
+                let elapsedTime = realToFrac $ end `diffUTCTime` start
+
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime ++ "," ++ show splits_f)
+                hFlush stdout
+
+                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+            repeat_loop 0
+
+            when (seed < seed_end - 1) (seed_loop (seed + 1))
+
+        seed_loop seed_start
+
+        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+
+    size_loop size_start
+
 dag_build_insert_delete_speed_test (per_empty, per_insert, per_delete) = do
     let size_start = 500
     let size_incr_mul = 1.3 :: Float
@@ -684,7 +831,6 @@ dag_build_insert_delete_speed_test (per_empty, per_insert, per_delete) = do
         when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
 
     size_loop size_start
-
 
 dag_build_worst_case_delete_speed_test (per_empty, per_insert, per_delete) = do
     let size_start = 500
@@ -742,14 +888,19 @@ main = do
 
     -- size_compare_test (build_binary_tree_without_duplicates TEM.get_func PER.get_func)
     -- size_compare_test (build_and_destroy_binary_tree_without_duplicates TEM.get_func PER.get_func)
+    -- size_worst_case_compare_test TEM.get_func PER.get_func
+    -- size_worst_case_test PER.get_func
     -- size_persistent_with_split_count_test PER.get_func
     -- size_persistent_with_split_count_range_test PER.get_func
 
     -- sanity_runtime_check
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
-    update_insert_and_delete_total_runtime_test TEM.get_func PER.get_func
+    -- update_insert_and_delete_total_runtime_test TEM.get_func PER.get_func
+    -- dag_build_insert_only_speed_test PER.get_func  -- TODO: this one!
     -- dag_build_insert_delete_speed_test PER.get_func
     -- dag_build_worst_case_delete_speed_test PER.get_func
+
+    update_insert_range_total_runtime_test RB.get_func RB_per.get_func
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
     -- let tree_10 : tem_rest = tem
