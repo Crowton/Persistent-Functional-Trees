@@ -1,10 +1,13 @@
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
 -- Code is from: https://hackage.haskell.org/package/llrbtree-0.1.1/docs/src/Data-Set-RBTree.html
 
 module RBTree_temporal where
 
 import DataRecords
+import GHC.Generics (Generic)
+import Control.DeepSeq
 
 ----------------------------------------------------------------
 
@@ -13,7 +16,7 @@ get_func = (empty, insert, delete)
 
 data Color = B -- ^ Black
            | R -- ^ Red
-           deriving (Eq, Show)
+           deriving (Eq, Show, Generic, NFData)
 
 -- Syntactic help
 type RBTree a = Tree (Color, a)

@@ -638,8 +638,7 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
     size_loop size_start
 
 update_insert_range_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
-    -- TODO: scale seed and repeats automaically
-    let size_start = 10000
+    let size_start = 1000
     let size_incr_mul = 1.3 :: Float
     let size_end = 10000000
 
