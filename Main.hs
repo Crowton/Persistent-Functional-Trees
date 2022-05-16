@@ -481,47 +481,6 @@ size_worst_case_test (per_empty, per_insert, per_delete) = do
     size_loop size_start
 
 
--- TODO: These two tests are similar, refractor?
-size_persistent_with_split_count_test per_build = do
-    let size_start = 10
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 4000
-
-    putStrLn "n,per,splits"
-
-    let size_loop size = do
-        let per = build_binary_persistent_tree_high_out_degree per_build size
-        let (per_root_list, node_splits) = build_root_list per
-
-        per_size <- recursiveSizeNF per_root_list
-
-        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show node_splits)
-        hFlush stdout
-
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
-
-    size_loop size_start
-
-size_persistent_with_split_count_range_test per_build = do
-    let size_start = 1
-    let size_end = 1000
-
-    putStrLn "n,per,splits"
-
-    let size_loop size = do
-        let per = build_binary_persistent_tree_high_out_degree per_build size
-        let (per_root_list, node_splits) = build_root_list per
-
-        per_size <- recursiveSizeNF per_root_list
-
-        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show node_splits)
-        hFlush stdout
-
-        when (size < size_end) (size_loop (size + 1))
-
-    size_loop size_start
-
-
 -- Tests for run time --
 
 sanity_runtime_check = do
@@ -889,8 +848,6 @@ main = do
     -- size_compare_test (build_and_destroy_binary_tree_without_duplicates TEM.get_func PER.get_func)
     -- size_worst_case_compare_test TEM.get_func PER.get_func
     -- size_worst_case_test PER.get_func
-    -- size_persistent_with_split_count_test PER.get_func
-    -- size_persistent_with_split_count_range_test PER.get_func
 
     -- sanity_runtime_check
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
