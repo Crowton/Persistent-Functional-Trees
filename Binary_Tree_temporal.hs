@@ -5,6 +5,8 @@ module Binary_Tree_temporal where
 
 import DataRecords
 
+import Prelude hiding (sum)
+
 
 get_func :: Ord s => TEM_BST s s
 get_func = (Leaf, insert, delete)
@@ -16,6 +18,11 @@ contains e Node {elm=elm, children=[left, right]}
   | e == elm = True
   | e < elm = contains e left
   | otherwise = contains e right
+
+
+sum :: Tree Int -> Int
+sum Leaf = 0
+sum Node {elm=elm, children=[left, right]} = (sum left) + elm + (sum right)
 
 
 insert :: Ord e => e -> Tree e -> Tree e

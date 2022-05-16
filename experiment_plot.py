@@ -132,7 +132,7 @@ def plot_insertion_deletion_worst_case_range_size_with_node_splits():
 def plot_insertion_deletion_worst_case_range_size_node_splits():
     with open("data/bst_unbalanced_space_insert_and_delete_worst_case_splits_range_only_persistent.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[3:]]
-        data = [(3 * n, size, splits) for n, size, splits in data]
+        # data = [(3 * n, size, splits) for n, size, splits in data]
 
     split_diff = [s2 - s1 for (_, _, s1), (_, _, s2) in zip(data, data[1:])]
 
@@ -327,10 +327,10 @@ def plot_sanity_test_runtime():
 if __name__ == "__main__":
     # plot_insertion_size()
     # plot_insertion_deletion_size()
-    # plot_insertion_deletion_worst_case_size_with_node_splits()
+    plot_insertion_deletion_worst_case_size_with_node_splits()
     # plot_insertion_deletion_worst_case_range_size_with_node_splits()
 
-    plot_insertion_deletion_worst_case_range_size_node_splits()
+    # plot_insertion_deletion_worst_case_range_size_node_splits()
 
     # plot_update_runtime(
     #     "data/bst_unbalanced_update_insert_total_time_FULL.csv",

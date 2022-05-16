@@ -23,6 +23,9 @@ import qualified Random_access_list_persistent as RAL_per
 
 import Persistent_update
 import DAG_construction
+import Tree_Constructor
+
+import qualified Data.Map.Strict as MB
 
 import Random_Test
 
@@ -850,6 +853,133 @@ dag_build_worst_case_delete_speed_test (per_empty, per_insert, per_delete) = do
     size_loop size_start
 
 
+query_only_inserts_fixed_size_sum_elements_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
+    let time_start = 1000
+    let time_incr_mul = 1.3 :: Float
+    
+    let size = 200000
+    
+    let seed_start = 0
+    let seed_end = 40
+
+    let repeats = 20
+
+    putStrLn "seed,version,tem,per"
+
+    let seed_loop seed = do
+        let pureGen = mkStdGen seed
+        let !random_permutation = random_shuffle size pureGen
+
+        let (_ : tem_list, _, times) = foldl 
+                (\(tem_h : tem_t, next_time, times) (time, elm) ->
+                    let new_tem = tem_insert elm tem_h in
+                    if (time == next_time)
+                        then let new_next_time = ceiling ((fromIntegral next_time) * time_incr_mul) in
+                             (new_tem : new_tem : tem_t, new_next_time, time : times)
+                        else (new_tem : tem_t, next_time, times)
+                )
+                ([tem_empty], time_start, [])
+                (zip [1..] random_permutation)
+        
+        let !tem_list_f = force (reverse tem_list)
+        let !times_f = force (reverse times)
+
+        let per = foldl (flip per_insert) per_empty random_permutation
+        let (rootNodeList, _) = build_root_list per
+        let rootMap = MB.fromDistinctDescList rootNodeList
+        let !rootMap_f = force rootMap
+
+        let per_tree = construct (fieldCount per) rootMap
+
+
+        let time_loop times tems = do
+            let !time = force (head times)
+            let !tem = force (head tems)
+            
+            let repeat_loop itr = do
+                start_tem <- liftIO getCurrentTime
+                let tem_sum = TEM.sum tem
+                let !tem_f = force tem_sum
+                end_tem <- liftIO getCurrentTime
+                let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+
+                start_per <- liftIO getCurrentTime
+                let per_sum = TEM.sum (per_tree time)
+                let !per_f = force per_sum
+                end_per <- liftIO getCurrentTime
+                let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+
+                putStrLn (show seed ++ "," ++ show time ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+                hFlush stdout
+
+                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+            repeat_loop 0
+
+            when (tail times /= []) (time_loop (tail times) (tail tems))
+        
+        time_loop times_f tem_list_f
+
+        when (seed + 1 < seed_end) (seed_loop (seed + 1))
+
+    seed_loop seed_start
+
+
+query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, per_delete) = do
+    let time_start = 10
+    let time_incr_mul = 1.3 :: Float
+    
+    let size = 10000
+
+    let time_end = 3 * size
+    let real_time_start = time_start + size
+    
+    let repeats = 20
+
+    putStrLn "version,tem,per"
+
+
+    let tem_leaf = foldl (flip tem_insert) tem_empty [1 :: Int .. size]
+    let tem_node = tem_insert (size + 1) tem_leaf
+
+    let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
+    let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
+
+    let (rootNodeList, _) = build_root_list per
+    let rootMap = MB.fromDistinctDescList rootNodeList
+    let !rootMap_f = force rootMap
+
+    let per_tree = construct (fieldCount per) rootMap
+    
+    let time_loop time = do
+        let !tem = force (if (TEM.contains (size + 1) (per_tree time)) then tem_node else tem_leaf) 
+
+        let repeat_loop itr = do
+            start_tem <- liftIO getCurrentTime
+            let tem_res = TEM.contains (size + 1) tem
+            let !tem_f = force tem_res
+            end_tem <- liftIO getCurrentTime
+            let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+
+            start_per <- liftIO getCurrentTime
+            let per_res = TEM.contains (size + 1) (per_tree time)
+            let !per_f = force per_res
+            end_per <- liftIO getCurrentTime
+            let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+
+            putStrLn (show time ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+            hFlush stdout
+
+            when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+        repeat_loop 0
+
+        let new_time = ceiling ((fromIntegral time) * time_incr_mul)
+
+        when (new_time < time_end) (time_loop new_time)
+    
+    time_loop real_time_start
+
 
 main = do
     -- small_temporal_tree_build TEM.get_func TEM.contains
@@ -871,7 +1001,7 @@ main = do
     -- size_compare_test (build_and_destroy_binary_tree_without_duplicates TEM.get_func PER.get_func)
     -- size_worst_case_compare_test TEM.get_func PER.get_func
     -- size_worst_case_test PER.get_func
-    size_worst_case_range_test PER.get_func
+    -- size_worst_case_range_test PER.get_func
 
     -- sanity_runtime_check
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
@@ -880,7 +1010,10 @@ main = do
     -- dag_build_insert_delete_speed_test PER.get_func
     -- dag_build_worst_case_delete_speed_test PER.get_func
 
-    update_insert_range_total_runtime_test RB.get_func RB_per.get_func
+    -- query_only_inserts_fixed_size_sum_elements_runtime_test TEM.get_func PER.get_func  -- TODO: this one more!
+    query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test TEM.get_func PER.get_func  -- TODO: this one more!
+
+    -- update_insert_range_total_runtime_test RB.get_func RB_per.get_func
 
     -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
     -- let tree_10 : tem_rest = tem
