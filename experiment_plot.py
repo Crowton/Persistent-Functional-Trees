@@ -75,7 +75,7 @@ def plot_insertion_deletion_size():
     plt.show()
 
 
-def plot_deletion_size_with_node_splits():
+def plot_insertion_deletion_worst_case_size_with_node_splits():
     with open("data/bst_unbalanced_space_insert_and_delete_worst_case_splits_only_persistent.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
         data = [(3 * n, size, splits) for n, size, splits in data]
@@ -99,6 +99,44 @@ def plot_deletion_size_with_node_splits():
     plt.ylabel("Splits / Updates")
     plt.xscale("log")
 
+    plt.show()
+
+
+def plot_insertion_deletion_worst_case_range_size_with_node_splits():
+    with open("data/bst_unbalanced_space_insert_and_delete_worst_case_splits_range_only_persistent.csv") as f:
+        data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[3:]]
+        data = [(3 * n, size, splits) for n, size, splits in data]
+
+    size_pr_size = [(n, size / n) for n, size, _ in data]
+    splits_pr_size = [(n, splits / n) for n, _, splits in data]
+
+    plt.suptitle("Space Experiment\nUnbalanced BST with Worst case Insertion and Deletion Updates")
+
+    plt.subplot(2, 1, 1)
+    plt.plot(*zip(*size_pr_size), ".")
+    plt.title("Space")
+    plt.xlabel("Number of Updates")
+    plt.ylabel("Space usage (bytes) / Updates")
+    # plt.xscale("log")
+
+    plt.subplot(2, 1, 2)
+    plt.plot(*zip(*splits_pr_size), ".")
+    plt.title("Splits")
+    plt.xlabel("Number of Updates")
+    plt.ylabel("Splits / Updates")
+    # plt.xscale("log")
+
+    plt.show()
+
+
+def plot_insertion_deletion_worst_case_range_size_node_splits():
+    with open("data/bst_unbalanced_space_insert_and_delete_worst_case_splits_range_only_persistent.csv") as f:
+        data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[3:]]
+        data = [(3 * n, size, splits) for n, size, splits in data]
+
+    split_diff = [s2 - s1 for (_, _, s1), (_, _, s2) in zip(data, data[1:])]
+
+    plt.plot(split_diff, ".")
     plt.show()
 
 
@@ -172,7 +210,7 @@ def plot_RB_update_insertion_time():
     # plt.plot(*zip(*all_batch_increase), ".", color="black", label="Ratio from all times")
     plt.plot(*zip(*batch_increase), "o:", color="red", label="Ratio from Average Ratio of times")
     
-    plt.title("Update Time Increase Experiment\Red-Black BST with Increasing Insertion Updates")
+    plt.title("Update Time Increase Experiment\nRed-Black BST with Increasing Insertion Updates")
     plt.xlabel("Number of Updates")
     plt.ylabel("Persistent Runtime / Temporal Runtime")
 
@@ -289,7 +327,10 @@ def plot_sanity_test_runtime():
 if __name__ == "__main__":
     # plot_insertion_size()
     # plot_insertion_deletion_size()
-    plot_deletion_size_with_node_splits()
+    # plot_insertion_deletion_worst_case_size_with_node_splits()
+    # plot_insertion_deletion_worst_case_range_size_with_node_splits()
+
+    plot_insertion_deletion_worst_case_range_size_node_splits()
 
     # plot_update_runtime(
     #     "data/bst_unbalanced_update_insert_total_time_FULL.csv",

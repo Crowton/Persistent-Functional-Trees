@@ -481,6 +481,29 @@ size_worst_case_test (per_empty, per_insert, per_delete) = do
     size_loop size_start
 
 
+size_worst_case_range_test (per_empty, per_insert, per_delete) = do
+    let size_start = 1
+    let size_end = 10000
+
+    putStrLn "n,per,splits"
+
+    let size_loop size = do
+        -- TRUE n = 3 * n
+        let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
+        let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
+
+        let (per_root_list, splits) = build_root_list per
+
+        per_size <- recursiveSizeNF per_root_list
+
+        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show splits)
+        hFlush stdout
+
+        when (size + 1 < size_end) (size_loop (size + 1))
+
+    size_loop size_start
+
+
 -- Tests for run time --
 
 sanity_runtime_check = do
@@ -848,6 +871,7 @@ main = do
     -- size_compare_test (build_and_destroy_binary_tree_without_duplicates TEM.get_func PER.get_func)
     -- size_worst_case_compare_test TEM.get_func PER.get_func
     -- size_worst_case_test PER.get_func
+    size_worst_case_range_test PER.get_func
 
     -- sanity_runtime_check
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
