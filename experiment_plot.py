@@ -286,6 +286,77 @@ def plot_worst_case_build_runtime():
     plt.show()
 
 
+def plot_query_worst_case_insert_delete_contains_leaf():
+    # with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf.csv") as f:
+    with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf_LARGER.csv") as f:
+        data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
+        data = [(int(time), float(tem), float(per)) for time, tem, per in data]
+
+    tem_times = defaultdict(lambda: [])
+    per_times = defaultdict(lambda: [])
+
+    for time, tem, per in data:
+        tem_times[time].append(tem)
+        per_times[time].append(per)
+
+    def points(times):
+        return sorted((n, v) for n, values in times.items() for v in values)
+
+    def avg_points(times):
+        return sorted((n, sum(values) / len(values)) for n, values in times.items())
+
+
+    plt.plot(*zip(*points(tem_times)), ".", label="Temporal time", color="Black")
+    plt.plot(*zip(*avg_points(tem_times)), "o:", label="Average Temporal time", color="Blue")
+    plt.plot(*zip(*points(per_times)), ".", label="Persistent time", color="Grey")
+    plt.plot(*zip(*avg_points(per_times)), "o:", label="Average Persistent time", color="Orange")
+
+    plt.title("Query Time Experiment\nUnbalanced BST path with repeated Insertion and Deletion of leaf\nQuery containing of leaf")
+    plt.xlabel("Version Queried")
+    plt.ylabel("Runtime (s)")
+
+    plt.xscale("log")
+    # plt.ylim(ymin=0)
+
+    plt.legend()
+    plt.show()
+
+
+def plot_query_relative_worst_case_insert_delete_contains_leaf():
+    with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf.csv") as f:
+        data_small = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
+        data_small = [(int(time), float(tem), float(per)) for time, tem, per in data_small]
+    
+    with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf_LARGER.csv") as f:
+        data_large = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
+        data_large = [(int(time), float(tem), float(per)) for time, tem, per in data_large]
+
+    def process(data):
+        batch_times = defaultdict(lambda: [])
+        for time, tem, per in data:
+            batch_times[time].append((tem, per))
+
+        avg_batch_times = [
+            (time, *[sum(times) / len(times) for times in zip(*values)])
+            for time, values in batch_times.items()
+        ]
+
+        return [(time, per / tem) for time, tem, per in avg_batch_times]
+
+    plt.plot(*zip(*process(data_small)), "o:", label="Path length 1000")
+    plt.plot(*zip(*process(data_large)), "o:", label="Path length 3000")
+
+    plt.title("Query Time Experiment\nUnbalanced BST path with repeated Insertion and Deletion of leaf\nQuery containing of leaf")
+    plt.xlabel("Version Queried")
+    plt.ylabel("Persistent Runtime / Temporal Runtime")
+
+    plt.xscale("log")
+    plt.ylim(ymin=0)
+
+    plt.legend()
+    plt.show()
+
+
 def plot_sanity_test_runtime():
     with open("data/sanity_time_test_bst_query_all.csv") as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
@@ -325,13 +396,14 @@ def plot_sanity_test_runtime():
 
 
 if __name__ == "__main__":
+    ### SIZE
     # plot_insertion_size()
     # plot_insertion_deletion_size()
-    plot_insertion_deletion_worst_case_size_with_node_splits()
+    # plot_insertion_deletion_worst_case_size_with_node_splits()
     # plot_insertion_deletion_worst_case_range_size_with_node_splits()
-
     # plot_insertion_deletion_worst_case_range_size_node_splits()
 
+    ### UPDATE
     # plot_update_runtime(
     #     "data/bst_unbalanced_update_insert_total_time_FULL.csv",
     #     "Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates"
@@ -343,7 +415,13 @@ if __name__ == "__main__":
 
     # plot_RB_update_insertion_time()
 
+    ### DAG BUILDING
     # plot_build_runtime()
     # plot_worst_case_build_runtime()
 
+    ### QUERY
+    # plot_query_worst_case_insert_delete_contains_leaf()
+    plot_query_relative_worst_case_insert_delete_contains_leaf()
+
+    # SANITY TIME
     # plot_sanity_test_runtime()

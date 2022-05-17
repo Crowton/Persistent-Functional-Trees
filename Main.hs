@@ -927,14 +927,14 @@ query_only_inserts_fixed_size_sum_elements_runtime_test (tem_empty, tem_insert, 
 
 query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, per_delete) = do
     let time_start = 10
-    let time_incr_mul = 1.3 :: Float
+    let time_incr_mul = 1.2 :: Float
     
-    let size = 10000
+    let size = 3000
 
     let time_end = 3 * size
     let real_time_start = time_start + size
     
-    let repeats = 20
+    let repeats = 30
 
     putStrLn "version,tem,per"
 
@@ -1011,7 +1011,7 @@ main = do
     -- dag_build_worst_case_delete_speed_test PER.get_func
 
     -- query_only_inserts_fixed_size_sum_elements_runtime_test TEM.get_func PER.get_func  -- TODO: this one more!
-    query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test TEM.get_func PER.get_func  -- TODO: this one more!
+    query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test TEM.get_func PER.get_func
 
     -- update_insert_range_total_runtime_test RB.get_func RB_per.get_func
 
