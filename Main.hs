@@ -925,6 +925,69 @@ query_only_inserts_fixed_size_sum_elements_runtime_test (tem_empty, tem_insert, 
     seed_loop seed_start
 
 
+query_only_inserts_range_fixed_size_sum_elements_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
+    let time_start = 1000
+    let time_incr_mul = 1.3 :: Float
+    
+    let size = 100000
+
+    let repeats = 30
+
+    putStrLn "version,tem,per"
+
+    let !elements = [1::Int .. size]
+
+    let (_ : tem_list, _, times) = foldl 
+            (\(tem_h : tem_t, next_time, times) (time, elm) ->
+                let new_tem = tem_insert elm tem_h in
+                if (time == next_time)
+                    then let new_next_time = ceiling ((fromIntegral next_time) * time_incr_mul) in
+                            (new_tem : new_tem : tem_t, new_next_time, time : times)
+                    else (new_tem : tem_t, next_time, times)
+            )
+            ([tem_empty], time_start, [])
+            (zip [1..] elements)
+    
+    let !tem_list_f = force (reverse tem_list)
+    let !times_f = force (reverse times)
+
+    let per = foldl (flip per_insert) per_empty elements
+    let (rootNodeList, _) = build_root_list per
+    let rootMap = MB.fromDistinctDescList rootNodeList
+    let !rootMap_f = force rootMap
+
+    let per_tree = construct (fieldCount per) rootMap
+
+
+    let time_loop times tems = do
+        let !time = force (head times)
+        let !tem = force (head tems)
+        
+        let repeat_loop itr = do
+            start_tem <- liftIO getCurrentTime
+            let tem_sum = RB.sum tem
+            let !tem_f = force tem_sum
+            end_tem <- liftIO getCurrentTime
+            let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+
+            start_per <- liftIO getCurrentTime
+            let per_sum = RB.sum (per_tree time)
+            let !per_f = force per_sum
+            end_per <- liftIO getCurrentTime
+            let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+
+            putStrLn (show time ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+            hFlush stdout
+
+            when (itr + 1 < repeats) (repeat_loop (itr + 1))
+
+        repeat_loop 0
+
+        when (tail times /= []) (time_loop (tail times) (tail tems))
+    
+    time_loop times_f tem_list_f
+
+
 query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, per_delete) = do
     let time_start = 10
     let time_incr_mul = 1.2 :: Float
@@ -1010,8 +1073,9 @@ main = do
     -- dag_build_insert_delete_speed_test PER.get_func
     -- dag_build_worst_case_delete_speed_test PER.get_func
 
-    -- query_only_inserts_fixed_size_sum_elements_runtime_test TEM.get_func PER.get_func  -- TODO: this one more!
-    query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test TEM.get_func PER.get_func
+    -- query_only_inserts_fixed_size_sum_elements_runtime_test TEM.get_func PER.get_func
+    query_only_inserts_range_fixed_size_sum_elements_runtime_test RB.get_func RB_per.get_func
+    -- query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test TEM.get_func PER.get_func
 
     -- update_insert_range_total_runtime_test RB.get_func RB_per.get_func
 

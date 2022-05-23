@@ -286,6 +286,42 @@ def plot_worst_case_build_runtime():
     plt.show()
 
 
+def plot_query_insertion_only_sum():
+    with open("data/bst_unbalanced_query_sum_of_all_elements_random_insert_only.csv") as f:
+        data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
+        data = [(int(seed), int(version), float(tem), float(per)) for seed, version, tem, per in data]
+
+    batch_times = defaultdict(lambda: [])
+    for seed, version, tem, per in data:
+        batch_times[(seed, version)].append((tem, per))
+    
+    avg_batch_times = [
+        (seed, version, *[sum(times) / len(times) for times in zip(*values)])
+        for (seed, version), values in batch_times.items()
+    ]
+
+    batch_increase = defaultdict(lambda: [])
+    for _, n, tem_avg, per_avg in avg_batch_times:
+        batch_increase[n].append(per_avg / tem_avg)
+
+    sorted_batch_increase = sorted(batch_increase.items())
+    increase = [(v, t) for v, times in sorted_batch_increase for t in times]
+    avg_increase = [(v, sum(times) / len(times)) for v, times in sorted_batch_increase]
+
+    plt.plot(*zip(*increase), ".", color="black", label="Ratio from Average Time over fixed seed")
+    plt.plot(*zip(*avg_increase), "o:", color="red", label="Ratio from Average Ratio of seeds")
+    
+    plt.title("Query Time Experiment\nUnbalanced BST with 200000 random Insertions\nQuery sum of elements")
+    plt.xlabel("Version Queried")
+    plt.ylabel("Persistent Runtime / Temporal Runtime")
+
+    plt.xscale("log")
+    plt.ylim(ymin=0)
+
+    plt.legend()
+    plt.show()
+
+
 def plot_query_worst_case_insert_delete_contains_leaf():
     # with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf.csv") as f:
     with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf_LARGER.csv") as f:
@@ -420,6 +456,7 @@ if __name__ == "__main__":
     # plot_worst_case_build_runtime()
 
     ### QUERY
+    # plot_query_insertion_only_sum()
     # plot_query_worst_case_insert_delete_contains_leaf()
     plot_query_relative_worst_case_insert_delete_contains_leaf()
 

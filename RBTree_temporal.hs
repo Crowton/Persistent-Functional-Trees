@@ -9,6 +9,8 @@ import DataRecords
 import GHC.Generics (Generic)
 import Control.DeepSeq
 
+import Prelude hiding (sum)
+
 ----------------------------------------------------------------
 
 get_func :: Ord s => TEM_BST s (Color, s)
@@ -35,6 +37,10 @@ member x (RBNode _ l y r) = case compare x y of
     LT -> member x l
     GT -> member x r
     EQ -> True
+
+sum :: Tree (Color, Int) -> Int
+sum Leaf = 0
+sum Node {elm=(_, elm), children=[left, right]} = (sum left) + elm + (sum right)
 
 ----------------------------------------------------------------
 
