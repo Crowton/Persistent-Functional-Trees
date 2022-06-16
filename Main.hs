@@ -808,7 +808,7 @@ dag_build_insert_delete_speed_test (per_empty, per_insert, per_delete) = do
 
             repeat_loop 0
 
-            when (seed < seed_end - 1) (seed_loop (seed + 1))
+            when (seed + 1 < seed_end) (seed_loop (seed + 1))
 
         seed_loop seed_start
 
@@ -1066,9 +1066,10 @@ main = do
     -- size_worst_case_test PER.get_func
     -- size_worst_case_range_test PER.get_func
 
-    -- sanity_runtime_check
     -- update_insert_total_runtime_test TEM.get_func PER.get_func
     -- update_insert_and_delete_total_runtime_test TEM.get_func PER.get_func
+
+    -- sanity_runtime_check
     -- dag_build_insert_only_speed_test PER.get_func  -- TODO: this one!
     -- dag_build_insert_delete_speed_test PER.get_func
     -- dag_build_worst_case_delete_speed_test PER.get_func

@@ -1,4 +1,4 @@
--- Code from: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.55.5156&rep=rep1&type=pdf
+-- Code from: http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.55.5156
 
 module Random_access_list_temporal where
 
