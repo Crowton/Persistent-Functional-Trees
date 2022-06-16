@@ -1,8 +1,5 @@
-from json.tool import main
 import matplotlib.pyplot as plt
 from collections import defaultdict
-
-import numpy as np
 
 from math import log2
 
@@ -16,11 +13,11 @@ def plot_insertion_size():
     with open("data/bst_unbalanced_space_inserts.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
 
-    tem_size_sum = defaultdict(lambda: [])
+    eph_size_sum = defaultdict(lambda: [])
     per_size_sum = defaultdict(lambda: [])
 
-    for _, n, tem, per in data:
-        tem_size_sum[n].append(tem)
+    for _, n, eph, per in data:
+        eph_size_sum[n].append(eph)
         per_size_sum[n].append(per)
 
     def points(size_sum):
@@ -30,8 +27,8 @@ def plot_insertion_size():
         return sorted((n, sum(values) / len(values) / n) for n, values in size_sum.items())
 
 
-    plt.plot(*zip(*points(tem_size_sum)), ".", label="Ephemeral size for fixed seed", color="Black")
-    plt.plot(*zip(*avg_points(tem_size_sum)), "o:", label="Average Ephemeral size", color="Blue")
+    plt.plot(*zip(*points(eph_size_sum)), ".", label="Ephemeral size for fixed seed", color="Black")
+    plt.plot(*zip(*avg_points(eph_size_sum)), "o:", label="Average Ephemeral size", color="Blue")
     plt.plot(*zip(*avg_points(per_size_sum)), "o:", label="Persistent size", color="Orange")
 
     # plt.title("Space Experiment\nUnbalanced BST with only Insertion Updates")
@@ -49,13 +46,13 @@ def plot_insertion_size():
 def plot_insertion_deletion_size():
     with open("data/bst_unbalanced_space_insert_and_delete.csv") as f:
         data = [tuple(map(int, line.strip().split(","))) for line in f.readlines()[1:]]
-        data = [(seed, 2 * n, tem, per) for seed, n, tem, per in data]
+        data = [(seed, 2 * n, eph, per) for seed, n, eph, per in data]
 
-    tem_size_sum = defaultdict(lambda: [])
+    eph_size_sum = defaultdict(lambda: [])
     per_size_sum = defaultdict(lambda: [])
 
-    for _, n, tem, per in data:
-        tem_size_sum[n].append(tem)
+    for _, n, eph, per in data:
+        eph_size_sum[n].append(eph)
         per_size_sum[n].append(per)
 
     def points(size_sum):
@@ -65,8 +62,8 @@ def plot_insertion_deletion_size():
         return sorted((n, sum(values) / len(values) / n) for n, values in size_sum.items())
 
 
-    plt.plot(*zip(*points(tem_size_sum)), ".", label="Ephemeral size for fixed seed", color="Black")
-    plt.plot(*zip(*avg_points(tem_size_sum)), "o:", label="Average Ephemeral size", color="Blue")
+    plt.plot(*zip(*points(eph_size_sum)), ".", label="Ephemeral size for fixed seed", color="Black")
+    plt.plot(*zip(*avg_points(eph_size_sum)), "o:", label="Average Ephemeral size", color="Blue")
     plt.plot(*zip(*points(per_size_sum)), ".", label="Persistent size for fixed seed", color="Grey")
     plt.plot(*zip(*avg_points(per_size_sum)), "o:", label="Average Persistent size", color="Orange")
 
@@ -158,11 +155,11 @@ def plot_insertion_deletion_worst_case_range_size_node_splits():
 def plot_update_runtime(path, title, savepath):
     with open(path) as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
-        data = [(int(seed), int(n), float(tem), float(per)) for seed, n, tem, per in data]
+        data = [(int(seed), int(n), float(eph), float(per)) for seed, n, eph, per in data]
 
     batch_times = defaultdict(lambda: [])
-    for seed, n, tem, per in data:
-        batch_times[(seed, n)].append((tem, per))
+    for seed, n, eph, per in data:
+        batch_times[(seed, n)].append((eph, per))
     
     avg_batch_times = [
         (seed, n, *[sum(times) / len(times) for times in zip(*values)])
@@ -170,9 +167,9 @@ def plot_update_runtime(path, title, savepath):
     ]
 
     batch_increase = defaultdict(lambda: [])
-    for _, n, tem_avg, per_avg in avg_batch_times:
-        batch_increase[n].append(per_avg / tem_avg)
-        # batch_increase[n].append((per_avg - tem_avg) / tem_avg)
+    for _, n, eph_avg, per_avg in avg_batch_times:
+        batch_increase[n].append(per_avg / eph_avg)
+        # batch_increase[n].append((per_avg - eph_avg) / eph_avg)
 
     sorted_batch_increase = sorted(batch_increase.items())
     increase = [(n, t) for n, times in sorted_batch_increase for t in times]
@@ -196,11 +193,11 @@ def plot_update_runtime(path, title, savepath):
 def plot_RB_update_insertion_time():
     with open("data/bst_RB_update_insert_range.csv") as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
-        data = [(int(n), float(tem), float(per)) for n, tem, per in data]
+        data = [(int(n), float(eph), float(per)) for n, eph, per in data]
 
     batch_times = defaultdict(lambda: [])
-    for n, tem, per in data:
-        batch_times[n].append((tem, per))
+    for n, eph, per in data:
+        batch_times[n].append((eph, per))
     
     avg_batch_times = [
         (n, *[sum(times) / len(times) for times in zip(*values)])
@@ -210,18 +207,18 @@ def plot_RB_update_insertion_time():
     # all_batch_increase = [
     #     (n, p / t)
     #     for n, values in batch_times.items()
-    #     for (tem_times, per_times) in [zip(*values)]
-    #     for t in tem_times
+    #     for (eph_times, per_times) in [zip(*values)]
+    #     for t in eph_times
     #     for p in per_times
     # ]
 
     # all_batch_increase = []
     # for n, values in batch_times.items():
-    #     tem, per = zip(*values)
-    #     for t, p in zip(sorted(tem), sorted(per)):
+    #     eph, per = zip(*values)
+    #     for t, p in zip(sorted(eph), sorted(per)):
     #         all_batch_increase.append((n, p / t))
 
-    batch_increase = sorted([(n, per_avg / tem_avg) for n, tem_avg, per_avg in avg_batch_times])
+    batch_increase = sorted([(n, per_avg / eph_avg) for n, eph_avg, per_avg in avg_batch_times])
     
     # plt.plot(*zip(*all_batch_increase), ".", color="black", label="Ratio from all times")
     plt.plot(*zip(*batch_increase), "o:", color="red", label="Ratio from Average Ratio of times")
@@ -306,11 +303,11 @@ def plot_worst_case_build_runtime():
 def plot_query_insertion_only_sum():
     with open("data/bst_unbalanced_query_sum_of_all_elements_random_insert_only.csv") as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
-        data = [(int(seed), int(version), float(tem), float(per)) for seed, version, tem, per in data]
+        data = [(int(seed), int(version), float(eph), float(per)) for seed, version, eph, per in data]
 
     batch_times = defaultdict(lambda: [])
-    for seed, version, tem, per in data:
-        batch_times[(seed, version)].append((tem, per))
+    for seed, version, eph, per in data:
+        batch_times[(seed, version)].append((eph, per))
     
     avg_batch_times = [
         (seed, version, *[sum(times) / len(times) for times in zip(*values)])
@@ -318,8 +315,8 @@ def plot_query_insertion_only_sum():
     ]
 
     batch_increase = defaultdict(lambda: [])
-    for _, n, tem_avg, per_avg in avg_batch_times:
-        batch_increase[n].append(per_avg / tem_avg)
+    for _, n, eph_avg, per_avg in avg_batch_times:
+        batch_increase[n].append(per_avg / eph_avg)
 
     sorted_batch_increase = sorted(batch_increase.items())
     increase = [(v, t) for v, times in sorted_batch_increase for t in times]
@@ -344,13 +341,13 @@ def plot_query_worst_case_insert_delete_contains_leaf():
     # with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf.csv") as f:
     with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf_LARGER.csv") as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
-        data = [(int(time), float(tem), float(per)) for time, tem, per in data]
+        data = [(int(time), float(eph), float(per)) for time, eph, per in data]
 
-    tem_times = defaultdict(lambda: [])
+    eph_times = defaultdict(lambda: [])
     per_times = defaultdict(lambda: [])
 
-    for time, tem, per in data:
-        tem_times[time].append(tem)
+    for time, eph, per in data:
+        eph_times[time].append(eph)
         per_times[time].append(per)
 
     def points(times):
@@ -360,8 +357,8 @@ def plot_query_worst_case_insert_delete_contains_leaf():
         return sorted((n, sum(values) / len(values)) for n, values in times.items())
 
 
-    plt.plot(*zip(*points(tem_times)), ".", label="Ephemeral time", color="Black")
-    plt.plot(*zip(*avg_points(tem_times)), "o:", label="Average Ephemeral time", color="Blue")
+    plt.plot(*zip(*points(eph_times)), ".", label="Ephemeral time", color="Black")
+    plt.plot(*zip(*avg_points(eph_times)), "o:", label="Average Ephemeral time", color="Blue")
     plt.plot(*zip(*points(per_times)), ".", label="Persistent time", color="Grey")
     plt.plot(*zip(*avg_points(per_times)), "o:", label="Average Persistent time", color="Orange")
 
@@ -380,23 +377,23 @@ def plot_query_worst_case_insert_delete_contains_leaf():
 def plot_query_relative_worst_case_insert_delete_contains_leaf():
     with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf.csv") as f:
         data_small = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
-        data_small = [(int(time), float(tem), float(per)) for time, tem, per in data_small]
+        data_small = [(int(time), float(eph), float(per)) for time, eph, per in data_small]
     
     with open("data/bst_unbalanced_query_wort_case_insert_delete_contains_leaf_LARGER.csv") as f:
         data_large = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
-        data_large = [(int(time), float(tem), float(per)) for time, tem, per in data_large]
+        data_large = [(int(time), float(eph), float(per)) for time, eph, per in data_large]
 
     def process(data):
         batch_times = defaultdict(lambda: [])
-        for time, tem, per in data:
-            batch_times[time].append((tem, per))
+        for time, eph, per in data:
+            batch_times[time].append((eph, per))
 
         avg_batch_times = [
             (time, *[sum(times) / len(times) for times in zip(*values)])
             for time, values in batch_times.items()
         ]
 
-        return [(time, per / tem) for time, tem, per in avg_batch_times]
+        return [(time, per / eph) for time, eph, per in avg_batch_times]
 
     plt.plot(*zip(*process(data_small)), "o:", label="Path length 1000")
     plt.plot(*zip(*process(data_large)), "o:", label="Path length 3000")

@@ -7,7 +7,7 @@ module RBTree_persistent where
 import DataRecords
 import Persistent_update
 
-import RBTree_temporal ( Color(..) )
+import RBTree_ephemeral ( Color(..) )
 
 ----------------------------------------------------------------
 

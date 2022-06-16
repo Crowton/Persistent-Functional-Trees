@@ -11,14 +11,14 @@ import System.IO
 
 import DataRecords
 
-import Binary_Tree_temporal as TEM
+import Binary_Tree_ephemeral as EPH
 import Binary_Tree_persistent_mock as PER_M
 import Binary_Tree_persistent as PER
 
-import RBTree_temporal as RB
+import RBTree_ephemeral as RB
 import RBTree_persistent as RB_per
 
-import qualified Random_access_list_temporal as RAL
+import qualified Random_access_list_ephemeral as RAL
 import qualified Random_access_list_persistent as RAL_per
 
 import Persistent_update
@@ -50,31 +50,31 @@ import System.Random
 
 -- Tests printing small trees to the terminal --
 
--- small_temporal_tree_build :: Show s => TEM_BST Int s -> IO ()
-small_temporal_tree_build (tem_empty, tem_insert, tem_delete) tem_contains = do
+-- small_ephemeral_tree_build :: Show s => EPH_BST Int s -> IO ()
+small_ephemeral_tree_build (eph_empty, eph_insert, eph_delete) eph_contains = do
     let tree =
-            tem_empty
-            & tem_insert 3
-            & tem_insert 1
-            & tem_insert 2
-            & tem_insert 4
-            & tem_delete 3
+            eph_empty
+            & eph_insert 3
+            & eph_insert 1
+            & eph_insert 2
+            & eph_insert 4
+            & eph_delete 3
 
     putStrLn (pretty_tree tree)
-    putStrLn ("Contains 1: " ++ (show (tem_contains 1 tree)) ++ "\n")
+    putStrLn ("Contains 1: " ++ (show (eph_contains 1 tree)) ++ "\n")
 
     let tree2 =
-            tem_empty
-            & tem_insert 1
-            & tem_insert 2
-            & tem_insert 3
-            & tem_insert 4
-            & tem_insert 5
-            & tem_insert 6
-            & tem_insert 7
-            & tem_insert 8
-            & tem_insert 9
-            & tem_delete 4
+            eph_empty
+            & eph_insert 1
+            & eph_insert 2
+            & eph_insert 3
+            & eph_insert 4
+            & eph_insert 5
+            & eph_insert 6
+            & eph_insert 7
+            & eph_insert 8
+            & eph_insert 9
+            & eph_delete 4
 
     putStrLn (pretty_tree tree2)
 
@@ -122,7 +122,7 @@ small_persistent_rotate = do
     putStrLn ("Before rotation:\n" ++ pretty_tree (tree 7) ++ "\n")
     putStrLn ("After rotation:\n" ++ pretty_tree (tree 8) ++ "\n")
 
-small_temporal_list_build = do
+small_ephemeral_list_build = do
     let list =
             RAL.empty
             & RAL.cons 1
@@ -157,7 +157,7 @@ small_temporal_list_build = do
 
 -- Tests for correctness --
 
-correctness_test tem_build per_build = do
+correctness_test eph_build per_build = do
     putStrLn "Running tests"
     hFlush stdout
 
@@ -173,22 +173,22 @@ correctness_test tem_build per_build = do
     -- Insertion
     test_run
         "Insertion test ............ "
-        (binary_tree_test_insert tem_build per_build 1000)
+        (binary_tree_test_insert eph_build per_build 1000)
 
     -- Deletion
     test_run
         "Deletion test ............. "
-        (binary_tree_test_delete tem_build per_build 1000)
+        (binary_tree_test_delete eph_build per_build 1000)
 
     -- Deletion, which creates notes with high out degree
     let size = 1000
     test_run
         "Node non splitting test ... "
-        (binary_tree_high_time_out_degree_node tem_build per_build build_non_split size)
+        (binary_tree_high_time_out_degree_node eph_build per_build build_non_split size)
     
     test_run
         "Node splitting test ....... "
-        (binary_tree_high_time_out_degree_node tem_build per_build build size)
+        (binary_tree_high_time_out_degree_node eph_build per_build build size)
 
 delete_persistent_compare = do
     let build_elm = [2, 5, 8, 3, 9, 0, 1]
@@ -276,11 +276,11 @@ random_access_list_correctness = do
 
 -- Checks for size of objects -- 
 
-temporal_tree_node_size_test (tem_empty, tem_insert, _) = do
-    let tree_0 = tem_empty :: Tree Int
+ephemeral_tree_node_size_test (eph_empty, eph_insert, _) = do
+    let tree_0 = eph_empty :: Tree Int
     let tree_1
             = tree_0
-            & tem_insert 1
+            & eph_insert 1
 
     size_0 <- recursiveSizeNF tree_0
     size_1 <- recursiveSizeNF tree_1
@@ -290,7 +290,7 @@ temporal_tree_node_size_test (tem_empty, tem_insert, _) = do
 
     let tree_2
             = tree_1
-            & tem_insert 2
+            & eph_insert 2
 
     size_2 <- recursiveSizeNF tree_2
 
@@ -298,16 +298,16 @@ temporal_tree_node_size_test (tem_empty, tem_insert, _) = do
 
     let tree_7
             = tree_0
-            & tem_insert 4
-            & tem_insert 2
-            & tem_insert 6
-            & tem_insert 1
-            & tem_insert 3
-            & tem_insert 5
-            & tem_insert 7
+            & eph_insert 4
+            & eph_insert 2
+            & eph_insert 6
+            & eph_insert 1
+            & eph_insert 3
+            & eph_insert 5
+            & eph_insert 7
     let tree_8
             = tree_7
-            & tem_insert 8
+            & eph_insert 8
 
     size_7 <- recursiveSizeNF tree_7
     size_8 <- recursiveSizeNF tree_8
@@ -316,7 +316,7 @@ temporal_tree_node_size_test (tem_empty, tem_insert, _) = do
 
     let tree_9
             = tree_8
-            & tem_insert 0
+            & eph_insert 0
 
     size_9 <- recursiveSizeNF tree_9
 
@@ -404,17 +404,17 @@ size_compare_test builder = do
     let seed_start = 0
     let seed_end = 30
 
-    putStrLn "seed,n,tem,per"
+    putStrLn "seed,n,eph,per"
 
     let size_loop size = do
         let seed_loop seed = do
-            let (tem, per) = builder size seed
+            let (eph, per) = builder size seed
             let (per_root_list, _) = build_root_list per
 
-            tem_size <- recursiveSizeNF tem
+            eph_size <- recursiveSizeNF eph
             per_size <- recursiveSizeNF per_root_list
 
-            putStrLn (show seed ++ "," ++ show size ++ "," ++ show tem_size ++ "," ++ show per_size)
+            putStrLn (show seed ++ "," ++ show size ++ "," ++ show eph_size ++ "," ++ show per_size)
             hFlush stdout
 
             when (seed + 1 < seed_end) (seed_loop (seed + 1))
@@ -425,34 +425,34 @@ size_compare_test builder = do
 
     size_loop size_start
 
-size_worst_case_compare_test (tem_empty, tem_insert, tem_delete) (per_empty, per_insert, per_delete) = do
+size_worst_case_compare_test (eph_empty, eph_insert, eph_delete) (per_empty, per_insert, per_delete) = do
     let size_start = 10
     let size_incr_mul = 1.3 :: Float
     let size_end = 10000
 
-    putStrLn "n,tem,per,splits"
+    putStrLn "n,eph,per,splits"
 
     let size_loop size = do
         -- TRUE n = 3 * n
-        let (tem_base, per_base) = foldl (\(tem_h : tem_t, per) element ->
-                                            let next_tem = tem_insert element tem_h in
+        let (eph_base, per_base) = foldl (\(eph_h : eph_t, per) element ->
+                                            let next_eph = eph_insert element eph_h in
                                             let next_per = per_insert element per in
-                                            (next_tem : tem_h : tem_t, next_per)
-                                   ) ([tem_empty], per_empty) [1 :: Int .. size]
+                                            (next_eph : eph_h : eph_t, next_per)
+                                   ) ([eph_empty], per_empty) [1 :: Int .. size]
         
-        let (tem_final, per_final) = foldl (\(tem_h : tem_t, per) _ ->
-                                              let next_tem = tem_insert (size + 1) tem_h in
-                                              let next_next_tem = tem_delete (size + 1) next_tem in
+        let (eph_final, per_final) = foldl (\(eph_h : eph_t, per) _ ->
+                                              let next_eph = eph_insert (size + 1) eph_h in
+                                              let next_next_eph = eph_delete (size + 1) next_eph in
                                               let next_per = per_delete (size + 1) (per_insert (size + 1) per) in
-                                              (next_next_tem : next_tem : tem_h : tem_t, next_per)
-                                     ) (tem_base, per_base) [1 :: Int .. size]
+                                              (next_next_eph : next_eph : eph_h : eph_t, next_per)
+                                     ) (eph_base, per_base) [1 :: Int .. size]
 
         let (per_root_list, splits) = build_root_list per_final
 
-        tem_size <- recursiveSizeNF tem_final
+        eph_size <- recursiveSizeNF eph_final
         per_size <- recursiveSizeNF per_root_list
 
-        putStrLn (show size ++ "," ++ show tem_size ++ "," ++ show per_size ++ "," ++ show splits)
+        putStrLn (show size ++ "," ++ show eph_size ++ "," ++ show per_size ++ "," ++ show splits)
         hFlush stdout
 
         when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
@@ -524,15 +524,15 @@ sanity_runtime_check = do
     let size_loop size = do
         let seed_loop seed = do
             -- TODO: move this to generator code space
-            let tem_builder :: Ord e => [e] -> Tree e -> Tree e
-                tem_builder elements tree =
+            let eph_builder :: Ord e => [e] -> Tree e -> Tree e
+                eph_builder elements tree =
                     case elements of
                         [] -> tree
                         _  -> let (left, mid : right) = splitAt ((length elements) `div` 2) elements in
-                              tem_builder right (tem_builder left (TEM.insert mid tree))
+                              eph_builder right (eph_builder left (EPH.insert mid tree))
             
-            let tem = tem_builder [1 .. size] Leaf
-            let !tem_f = force tem
+            let eph = eph_builder [1 .. size] Leaf
+            let !eph_f = force eph
 
             let pureGen = mkStdGen seed
             let query_elements = random_shuffle size pureGen
@@ -544,7 +544,7 @@ sanity_runtime_check = do
                 let query_loop elms = do
                     let q = head elms
                     
-                    let res = TEM.contains q tem_f
+                    let res = EPH.contains q eph_f
                     let !res_f = force res
 
                     when ((tail elms) /= []) (query_loop (tail elms))
@@ -552,7 +552,7 @@ sanity_runtime_check = do
                 query_loop query_elements_f
 
                 -- TODO: is this better? Or is there allocation issues?
-                -- let res = map (\elm -> TEM.contains elm tem_f) query_elements_f
+                -- let res = map (\elm -> EPH.contains elm eph_f) query_elements_f
                 -- let !res_f = force res
 
                 end <- liftIO getCurrentTime
@@ -576,7 +576,7 @@ sanity_runtime_check = do
 
 
 -- TODO: similar??
-update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
+update_insert_total_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
     -- TODO: scale seed and repeats automaically
     let size_start = 48269 -- 10000
     let size_incr_mul = 1.3 :: Float
@@ -587,7 +587,7 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
 
     let repeats = 2  -- 10
 
-    putStrLn "seed,n,tem,per"
+    putStrLn "seed,n,eph,per"
 
     let size_loop size = do
         let seed_loop seed = do
@@ -595,11 +595,11 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
                 let pureGen = mkStdGen seed
                 let !random_permutation = random_shuffle size pureGen
 
-                start_tem <- liftIO getCurrentTime
-                let tem = foldl (flip tem_insert) tem_empty random_permutation
-                let !tem_f = force tem
-                end_tem <- liftIO getCurrentTime
-                let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+                start_eph <- liftIO getCurrentTime
+                let eph = foldl (flip eph_insert) eph_empty random_permutation
+                let !eph_f = force eph
+                end_eph <- liftIO getCurrentTime
+                let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
 
                 start_per <- liftIO getCurrentTime
                 let per = foldl (flip per_insert) per_empty random_permutation
@@ -607,7 +607,7 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
                 end_per <- liftIO getCurrentTime
                 let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
 
-                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
                 hFlush stdout
 
                 when (itr + 1 < repeats) (repeat_loop (itr + 1))
@@ -622,24 +622,24 @@ update_insert_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_inse
 
     size_loop size_start
 
-update_insert_range_total_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
+update_insert_range_total_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
     let size_start = 1000
     let size_incr_mul = 1.3 :: Float
     let size_end = 10000000
 
     let repeats = 20
 
-    putStrLn "n,tem,per"
+    putStrLn "n,eph,per"
 
     let size_loop size = do
         let repeat_loop itr = do
             let !elements = [1 :: Int .. size]
 
-            start_tem <- liftIO getCurrentTime
-            let tem = foldl (flip tem_insert) tem_empty elements
-            let !tem_f = force tem
-            end_tem <- liftIO getCurrentTime
-            let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+            start_eph <- liftIO getCurrentTime
+            let eph = foldl (flip eph_insert) eph_empty elements
+            let !eph_f = force eph
+            end_eph <- liftIO getCurrentTime
+            let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
 
             start_per <- liftIO getCurrentTime
             let per = foldl (flip per_insert) per_empty elements
@@ -647,7 +647,7 @@ update_insert_range_total_runtime_test (tem_empty, tem_insert, _) (per_empty, pe
             end_per <- liftIO getCurrentTime
             let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
 
-            putStrLn (show size ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+            putStrLn (show size ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
             hFlush stdout
 
             when (itr + 1 < repeats) (repeat_loop (itr + 1))
@@ -658,7 +658,7 @@ update_insert_range_total_runtime_test (tem_empty, tem_insert, _) (per_empty, pe
 
     size_loop size_start
 
-update_insert_and_delete_total_runtime_test (tem_empty, tem_insert, tem_delete) (per_empty, per_insert, per_delete) = do
+update_insert_and_delete_total_runtime_test (eph_empty, eph_insert, eph_delete) (per_empty, per_insert, per_delete) = do
     -- TODO: scale seed and repeats automaically
     let size_start = 10000
     let size_incr_mul = 1.3 :: Float
@@ -669,7 +669,7 @@ update_insert_and_delete_total_runtime_test (tem_empty, tem_insert, tem_delete) 
 
     -- let repeats = 10
 
-    putStrLn "seed,n,tem,per"
+    putStrLn "seed,n,eph,per"
 
     let size_loop size = do
         let seed_end = if size < 25000 then 30 else 15
@@ -683,12 +683,12 @@ update_insert_and_delete_total_runtime_test (tem_empty, tem_insert, tem_delete) 
                 let pureGen = mkStdGen (-seed)
                 let !random_delete_permutation = random_shuffle size pureGen
 
-                start_tem <- liftIO getCurrentTime
-                let tem_base = foldl (flip tem_insert) tem_empty random_insert_permutation
-                let tem = foldl (flip tem_delete) tem_base random_delete_permutation
-                let !tem_f = force tem
-                end_tem <- liftIO getCurrentTime
-                let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+                start_eph <- liftIO getCurrentTime
+                let eph_base = foldl (flip eph_insert) eph_empty random_insert_permutation
+                let eph = foldl (flip eph_delete) eph_base random_delete_permutation
+                let !eph_f = force eph
+                end_eph <- liftIO getCurrentTime
+                let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
 
                 start_per <- liftIO getCurrentTime
                 let per_base = foldl (flip per_insert) per_empty random_insert_permutation
@@ -697,7 +697,7 @@ update_insert_and_delete_total_runtime_test (tem_empty, tem_insert, tem_delete) 
                 end_per <- liftIO getCurrentTime
                 let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
 
-                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
                 hFlush stdout
 
                 when (itr + 1 < repeats) (repeat_loop (itr + 1))
@@ -853,7 +853,7 @@ dag_build_worst_case_delete_speed_test (per_empty, per_insert, per_delete) = do
     size_loop size_start
 
 
-query_only_inserts_fixed_size_sum_elements_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
+query_only_inserts_fixed_size_sum_elements_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
     let time_start = 1000
     let time_incr_mul = 1.3 :: Float
     
@@ -864,24 +864,24 @@ query_only_inserts_fixed_size_sum_elements_runtime_test (tem_empty, tem_insert, 
 
     let repeats = 20
 
-    putStrLn "seed,version,tem,per"
+    putStrLn "seed,version,eph,per"
 
     let seed_loop seed = do
         let pureGen = mkStdGen seed
         let !random_permutation = random_shuffle size pureGen
 
-        let (_ : tem_list, _, times) = foldl 
-                (\(tem_h : tem_t, next_time, times) (time, elm) ->
-                    let new_tem = tem_insert elm tem_h in
+        let (_ : eph_list, _, times) = foldl 
+                (\(eph_h : eph_t, next_time, times) (time, elm) ->
+                    let new_eph = eph_insert elm eph_h in
                     if (time == next_time)
                         then let new_next_time = ceiling ((fromIntegral next_time) * time_incr_mul) in
-                             (new_tem : new_tem : tem_t, new_next_time, time : times)
-                        else (new_tem : tem_t, next_time, times)
+                             (new_eph : new_eph : eph_t, new_next_time, time : times)
+                        else (new_eph : eph_t, next_time, times)
                 )
-                ([tem_empty], time_start, [])
+                ([eph_empty], time_start, [])
                 (zip [1..] random_permutation)
         
-        let !tem_list_f = force (reverse tem_list)
+        let !eph_list_f = force (reverse eph_list)
         let !times_f = force (reverse times)
 
         let per = foldl (flip per_insert) per_empty random_permutation
@@ -892,40 +892,40 @@ query_only_inserts_fixed_size_sum_elements_runtime_test (tem_empty, tem_insert, 
         let per_tree = construct (fieldCount per) rootMap
 
 
-        let time_loop times tems = do
+        let time_loop times ephs = do
             let !time = force (head times)
-            let !tem = force (head tems)
+            let !eph = force (head ephs)
             
             let repeat_loop itr = do
-                start_tem <- liftIO getCurrentTime
-                let tem_sum = TEM.sum tem
-                let !tem_f = force tem_sum
-                end_tem <- liftIO getCurrentTime
-                let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+                start_eph <- liftIO getCurrentTime
+                let eph_sum = EPH.sum eph
+                let !eph_f = force eph_sum
+                end_eph <- liftIO getCurrentTime
+                let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
 
                 start_per <- liftIO getCurrentTime
-                let per_sum = TEM.sum (per_tree time)
+                let per_sum = EPH.sum (per_tree time)
                 let !per_f = force per_sum
                 end_per <- liftIO getCurrentTime
                 let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
 
-                putStrLn (show seed ++ "," ++ show time ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+                putStrLn (show seed ++ "," ++ show time ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
                 hFlush stdout
 
                 when (itr + 1 < repeats) (repeat_loop (itr + 1))
 
             repeat_loop 0
 
-            when (tail times /= []) (time_loop (tail times) (tail tems))
+            when (tail times /= []) (time_loop (tail times) (tail ephs))
         
-        time_loop times_f tem_list_f
+        time_loop times_f eph_list_f
 
         when (seed + 1 < seed_end) (seed_loop (seed + 1))
 
     seed_loop seed_start
 
 
-query_only_inserts_range_fixed_size_sum_elements_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, _) = do
+query_only_inserts_range_fixed_size_sum_elements_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
     let time_start = 1000
     let time_incr_mul = 1.3 :: Float
     
@@ -933,22 +933,22 @@ query_only_inserts_range_fixed_size_sum_elements_runtime_test (tem_empty, tem_in
 
     let repeats = 30
 
-    putStrLn "version,tem,per"
+    putStrLn "version,eph,per"
 
     let !elements = [1::Int .. size]
 
-    let (_ : tem_list, _, times) = foldl 
-            (\(tem_h : tem_t, next_time, times) (time, elm) ->
-                let new_tem = tem_insert elm tem_h in
+    let (_ : eph_list, _, times) = foldl 
+            (\(eph_h : eph_t, next_time, times) (time, elm) ->
+                let new_eph = eph_insert elm eph_h in
                 if (time == next_time)
                     then let new_next_time = ceiling ((fromIntegral next_time) * time_incr_mul) in
-                            (new_tem : new_tem : tem_t, new_next_time, time : times)
-                    else (new_tem : tem_t, next_time, times)
+                            (new_eph : new_eph : eph_t, new_next_time, time : times)
+                    else (new_eph : eph_t, next_time, times)
             )
-            ([tem_empty], time_start, [])
+            ([eph_empty], time_start, [])
             (zip [1..] elements)
     
-    let !tem_list_f = force (reverse tem_list)
+    let !eph_list_f = force (reverse eph_list)
     let !times_f = force (reverse times)
 
     let per = foldl (flip per_insert) per_empty elements
@@ -959,16 +959,16 @@ query_only_inserts_range_fixed_size_sum_elements_runtime_test (tem_empty, tem_in
     let per_tree = construct (fieldCount per) rootMap
 
 
-    let time_loop times tems = do
+    let time_loop times ephs = do
         let !time = force (head times)
-        let !tem = force (head tems)
+        let !eph = force (head ephs)
         
         let repeat_loop itr = do
-            start_tem <- liftIO getCurrentTime
-            let tem_sum = RB.sum tem
-            let !tem_f = force tem_sum
-            end_tem <- liftIO getCurrentTime
-            let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+            start_eph <- liftIO getCurrentTime
+            let eph_sum = RB.sum eph
+            let !eph_f = force eph_sum
+            end_eph <- liftIO getCurrentTime
+            let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
 
             start_per <- liftIO getCurrentTime
             let per_sum = RB.sum (per_tree time)
@@ -976,19 +976,19 @@ query_only_inserts_range_fixed_size_sum_elements_runtime_test (tem_empty, tem_in
             end_per <- liftIO getCurrentTime
             let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
 
-            putStrLn (show time ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+            putStrLn (show time ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
             hFlush stdout
 
             when (itr + 1 < repeats) (repeat_loop (itr + 1))
 
         repeat_loop 0
 
-        when (tail times /= []) (time_loop (tail times) (tail tems))
+        when (tail times /= []) (time_loop (tail times) (tail ephs))
     
-    time_loop times_f tem_list_f
+    time_loop times_f eph_list_f
 
 
-query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (tem_empty, tem_insert, _) (per_empty, per_insert, per_delete) = do
+query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, per_delete) = do
     let time_start = 10
     let time_incr_mul = 1.2 :: Float
     
@@ -999,11 +999,11 @@ query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (tem_em
     
     let repeats = 30
 
-    putStrLn "version,tem,per"
+    putStrLn "version,eph,per"
 
 
-    let tem_leaf = foldl (flip tem_insert) tem_empty [1 :: Int .. size]
-    let tem_node = tem_insert (size + 1) tem_leaf
+    let eph_leaf = foldl (flip eph_insert) eph_empty [1 :: Int .. size]
+    let eph_node = eph_insert (size + 1) eph_leaf
 
     let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
     let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
@@ -1015,22 +1015,22 @@ query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (tem_em
     let per_tree = construct (fieldCount per) rootMap
     
     let time_loop time = do
-        let !tem = force (if (TEM.contains (size + 1) (per_tree time)) then tem_node else tem_leaf) 
+        let !eph = force (if (EPH.contains (size + 1) (per_tree time)) then eph_node else eph_leaf) 
 
         let repeat_loop itr = do
-            start_tem <- liftIO getCurrentTime
-            let tem_res = TEM.contains (size + 1) tem
-            let !tem_f = force tem_res
-            end_tem <- liftIO getCurrentTime
-            let elapsedTime_tem = realToFrac $ end_tem `diffUTCTime` start_tem
+            start_eph <- liftIO getCurrentTime
+            let eph_res = EPH.contains (size + 1) eph
+            let !eph_f = force eph_res
+            end_eph <- liftIO getCurrentTime
+            let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
 
             start_per <- liftIO getCurrentTime
-            let per_res = TEM.contains (size + 1) (per_tree time)
+            let per_res = EPH.contains (size + 1) (per_tree time)
             let !per_f = force per_res
             end_per <- liftIO getCurrentTime
             let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
 
-            putStrLn (show time ++ "," ++ show elapsedTime_tem ++ "," ++ show elapsedTime_per)
+            putStrLn (show time ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
             hFlush stdout
 
             when (itr + 1 < repeats) (repeat_loop (itr + 1))
@@ -1045,41 +1045,41 @@ query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (tem_em
 
 
 main = do
-    -- small_temporal_tree_build TEM.get_func TEM.contains
-    -- small_temporal_tree_build RB.get_func RB.member
+    -- small_ephemeral_tree_build EPH.get_func EPH.contains
+    -- small_ephemeral_tree_build RB.get_func RB.member
     -- small_persistent_tree_build PER_M.get_func
     -- small_persistent_tree_build PER.get_func
     -- small_persistent_rotate
-    -- small_temporal_list_build
+    -- small_ephemeral_list_build
     
-    -- correctness_test TEM.get_func PER.get_func
+    -- correctness_test EPH.get_func PER.get_func
     -- correctness_test RB.get_func RB_per.get_func
     -- delete_persistent_compare
     -- random_access_list_correctness
 
-    -- temporal_tree_node_size_test TEM.get_func
+    -- ephemeral_tree_node_size_test EPH.get_func
     -- sanity_size_test
 
-    -- size_compare_test (build_binary_tree_without_duplicates TEM.get_func PER.get_func)
-    -- size_compare_test (build_and_destroy_binary_tree_without_duplicates TEM.get_func PER.get_func)
-    -- size_worst_case_compare_test TEM.get_func PER.get_func
+    -- size_compare_test (build_binary_tree_without_duplicates EPH.get_func PER.get_func)
+    -- size_compare_test (build_and_destroy_binary_tree_without_duplicates EPH.get_func PER.get_func)
+    -- size_worst_case_compare_test EPH.get_func PER.get_func
     -- size_worst_case_test PER.get_func
     -- size_worst_case_range_test PER.get_func
 
-    -- update_insert_total_runtime_test TEM.get_func PER.get_func
-    -- update_insert_and_delete_total_runtime_test TEM.get_func PER.get_func
+    -- update_insert_total_runtime_test EPH.get_func PER.get_func
+    -- update_insert_and_delete_total_runtime_test EPH.get_func PER.get_func
 
     -- sanity_runtime_check
     -- dag_build_insert_only_speed_test PER.get_func  -- TODO: this one!
     -- dag_build_insert_delete_speed_test PER.get_func
     -- dag_build_worst_case_delete_speed_test PER.get_func
 
-    -- query_only_inserts_fixed_size_sum_elements_runtime_test TEM.get_func PER.get_func
+    -- query_only_inserts_fixed_size_sum_elements_runtime_test EPH.get_func PER.get_func
     query_only_inserts_range_fixed_size_sum_elements_runtime_test RB.get_func RB_per.get_func
-    -- query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test TEM.get_func PER.get_func
+    -- query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test EPH.get_func PER.get_func
 
     -- update_insert_range_total_runtime_test RB.get_func RB_per.get_func
 
-    -- let (tem, per) = build_binary_tree_without_duplicates TEM.get_func PER.get_func 10 1
-    -- let tree_10 : tem_rest = tem
+    -- let (eph, per) = build_binary_tree_without_duplicates EPH.get_func PER.get_func 10 1
+    -- let tree_10 : eph_rest = eph
     -- putStrLn (pretty_tree tree_10)

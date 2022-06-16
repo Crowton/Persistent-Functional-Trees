@@ -1,6 +1,6 @@
 -- Code from: http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.55.5156
 
-module Random_access_list_temporal where
+module Random_access_list_ephemeral where
 
 import DataRecords
 import Prelude hiding (lookup)

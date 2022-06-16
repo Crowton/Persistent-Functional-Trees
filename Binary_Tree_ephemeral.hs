@@ -1,14 +1,14 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use camelCase" #-}
-module Binary_Tree_temporal where
+module Binary_Tree_ephemeral where
 
 import DataRecords
 
 import Prelude hiding (sum)
 
 
-get_func :: Ord s => TEM_BST s s
+get_func :: Ord s => EPH_BST s s
 get_func = (Leaf, insert, delete)
 
 

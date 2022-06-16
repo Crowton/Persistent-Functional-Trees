@@ -3,7 +3,7 @@
 
 -- Code is from: https://hackage.haskell.org/package/llrbtree-0.1.1/docs/src/Data-Set-RBTree.html
 
-module RBTree_temporal where
+module RBTree_ephemeral where
 
 import DataRecords
 import GHC.Generics (Generic)
@@ -13,7 +13,7 @@ import Prelude hiding (sum)
 
 ----------------------------------------------------------------
 
-get_func :: Ord s => TEM_BST s (Color, s)
+get_func :: Ord s => EPH_BST s (Color, s)
 get_func = (empty, insert, delete)
 
 data Color = B -- ^ Black
