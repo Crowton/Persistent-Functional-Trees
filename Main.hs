@@ -47,6 +47,9 @@ import Control.Monad.IO.Class
 
 import System.Random
 
+import Data.List
+import Debug.Trace -- TODO: remove imports
+
 
 -- Tests printing small trees to the terminal --
 
@@ -575,6 +578,27 @@ sanity_runtime_check = do
     size_loop size_start
 
 
+small_dag_build (per_empty, per_insert, per_delete) = do
+    -- let compare' a b = (trace (show (a, b))) $ compare a b
+    -- let l = sortBy compare' [9, 8, 7, 6, 5, 1, 2, 3, 4]
+    -- putStrLn (show l)
+
+    let persistent_tree =
+            per_empty
+            & per_insert (2::Int)
+            & per_insert 3
+            & per_insert 1
+            & per_insert 4
+            & per_delete 4 & per_insert 4
+            & per_delete 4 & per_insert 4
+            & per_delete 4 & per_insert 4
+            & per_delete 4 & per_insert 4
+
+    let !build_tree_thing = force (build_root_list persistent_tree)
+
+    putStrLn (show (currentTree persistent_tree))
+
+
 -- TODO: similar??
 update_insert_total_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
     -- TODO: scale seed and repeats automaically
@@ -773,7 +797,7 @@ dag_build_insert_delete_speed_test (per_empty, per_insert, per_delete) = do
 
     -- let repeats = 10
 
-    putStrLn "seed,n,time"
+    putStrLn "seed,n,time,splits"
 
     let size_loop size = do
         let seed_end = if size < 5000 then 30 else 15
@@ -800,6 +824,8 @@ dag_build_insert_delete_speed_test (per_empty, per_insert, per_delete) = do
                 end <- liftIO getCurrentTime
 
                 let elapsedTime = realToFrac $ end `diffUTCTime` start
+
+                -- assert (splits_f <= 2 * size * 3) $ putStrLn "okay"
 
                 putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime ++ "," ++ show splits_f)
                 hFlush stdout
@@ -1070,12 +1096,13 @@ main = do
     -- update_insert_and_delete_total_runtime_test EPH.get_func PER.get_func
 
     -- sanity_runtime_check
+    small_dag_build PER.get_func
     -- dag_build_insert_only_speed_test PER.get_func  -- TODO: this one!
-    -- dag_build_insert_delete_speed_test PER.get_func
+    dag_build_insert_delete_speed_test PER.get_func
     -- dag_build_worst_case_delete_speed_test PER.get_func
 
     -- query_only_inserts_fixed_size_sum_elements_runtime_test EPH.get_func PER.get_func
-    query_only_inserts_range_fixed_size_sum_elements_runtime_test RB.get_func RB_per.get_func
+    -- query_only_inserts_range_fixed_size_sum_elements_runtime_test RB.get_func RB_per.get_func
     -- query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test EPH.get_func PER.get_func
 
     -- update_insert_range_total_runtime_test RB.get_func RB_per.get_func

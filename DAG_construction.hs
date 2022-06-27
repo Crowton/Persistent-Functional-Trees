@@ -17,13 +17,16 @@ import DataRecords as D
 
 import Tree_Constructor as T
 
+import Debug.Trace
+import Control.Exception -- TODO: remove imports
+
 
 -- Fields are integers in the range [0 .. d-1]
 
 
 -- Function to build the root list with node splits
 -- Also return the number of node splits
-build_root_list :: PartialTree s -> ([(Int, Maybe (FrozenNode s))], Int)
+build_root_list :: Show s => PartialTree s -> ([(Int, Maybe (FrozenNode s))], Int) -- TODO: remove show
 build_root_list partialTree =
     -- Extract all edges in current tree
     let finish_time = time partialTree in
@@ -45,6 +48,7 @@ build_root_list partialTree =
 
                                     -- Child is node => edge
                                     TimeNode {t_id=t_id_to} ->
+                                        -- trace ("Edge " ++ (show (t_id_from, field_num)) ++ " -> " ++ (show t_id_to) ++ ", time [" ++ (show e_time_from) ++ "," ++ (show finish_time) ++ "[") $
                                         [ TimeEdge
                                             { id_from = t_id_from
                                             , field = field_num
@@ -58,7 +62,11 @@ build_root_list partialTree =
                             , field_num + 1)
                 ) (edgeList, 0) children_fields)
     in
+    -- trace ("Edges before: " ++ show (edgeFreezer partialTree)) $
     let edgeList = treeEdgeExtract (currentTree partialTree) (edgeFreezer partialTree) in
+    let edge_count = length edgeList in
+    -- trace ("Edges after: " ++ show edgeList) $
+    -- trace ("Total number of edges: " ++ (show (length edgeList))) $
 
     -- Map from id to static information
     let idToStatic = MH.fromList (idStaticList partialTree) in
@@ -80,11 +88,18 @@ build_root_list partialTree =
 
     -- Nodes with zero out degree
     let init_zeroOutDegree = filter (\i -> not (MH.member i init_outDegree)) [0 .. idCount partialTree - 1] in
+    
+    -- trace ("Forward edges: " ++ show forwards) $
+    -- trace ("Backwards edges: " ++ show backwards) $
+    -- trace ("Initial out-degree: " ++ show init_outDegree) $
+    -- trace ("Initial zero out-degree: " ++ show init_zeroOutDegree) $
+    -- trace "" $
 
     -- Function to create DAG, by processing nodes of zero out degree
     let innerRec node_splits zeroOutDegree outDegree idToInstance = case zeroOutDegree of
             [] -> (idToInstance, node_splits)
             id_h : ids ->
+                -- trace ("Processing id: " ++ show id_h) $
                 -- Create sorted list of outgoing edges, sorted on the time the edge starts existing
                 let outgoing_edges
                         = forwards
@@ -123,6 +138,9 @@ build_root_list partialTree =
                           & sortBy (compare `on` frozen_time_from)
                 in
                 
+                -- trace ("Out-going count: " ++ (show (length outgoing_edges))) $
+                -- trace ("Out-going edges: " ++ show outgoing_edges) $
+                
                 -- Fetch base information for creating the time to instance of the current node
                 let node_information = idToStatic MH.! id_h in
                 let num_fields = fieldCount partialTree in
@@ -135,6 +153,7 @@ build_root_list partialTree =
                         -- The free_edges are the edges currently needing a node instance
                         = foldl (\(time_to_instance, active_edges, free_edges) e ->
                                     -- Update active_edges with the current edge
+                                    -- assert (MH.size active_edges <= num_fields) $
                                     let new_active_edges = MH.insert (field_from e) e active_edges in
                                     
                                     if length free_edges == max_fields
@@ -174,7 +193,18 @@ build_root_list partialTree =
                 in
                 
                 -- New node splits is the number of nodes created - 1
+                -- let new_node_splits = (MB.size last_time_to_instance) in
                 let new_node_splits = (MB.size last_time_to_instance) - 1 in
+                
+                -- assert (
+                --     last_time_to_instance
+                --     & MB.toList
+                --     & map (\(_, FrozenNode {fields = edges}) -> ((length edges) <= max_fields))
+                --     & all (\x -> x)
+                -- ) $
+                
+                -- trace ("Node created count: " ++ (show (MB.size last_time_to_instance))) $
+                -- trace ("Nodes created: " ++ show last_time_to_instance) $
 
                 -- Update the idToInstance map with the intance map of the current node id
                 let new_idToInstance = MH.insert id_h last_time_to_instance idToInstance in
@@ -184,6 +214,11 @@ build_root_list partialTree =
                 let newOutDegree = foldl (\m p -> MH.insert p (m MH.! p - 1) m) outDegree parents in
                 let newZeroOut = filter (\p -> newOutDegree MH.! p == 0) parents in
                 
+                -- trace ("Parents: " ++ show parents) $
+                -- trace ("New out-degree: " ++ show newOutDegree) $
+                -- trace ("New zero out: " ++ show newZeroOut) $
+                -- trace "" $
+
                 -- Recurse with the updated zero out degree and idToInstance
                 innerRec (node_splits + new_node_splits) (newZeroOut ++ ids) newOutDegree new_idToInstance
     in
@@ -191,6 +226,8 @@ build_root_list partialTree =
     -- Create id to instance
     -- Maps from id to map over node end time and instance
     let (idToNode, node_splits) = innerRec (0::Int) init_zeroOutDegree init_outDegree MH.empty in
+
+    -- assert (node_splits <= edge_count * 2) $
 
     -- Create rootmap
     let newRootList = (finish_time, -1) : rootList partialTree in
@@ -202,12 +239,13 @@ build_root_list partialTree =
                                 & foldl (\(from_time, acc) (to_time, node) -> (to_time, (from_time, Just node) : acc)) (t, [])
                                 & snd
                 ) newRootList
+    -- , edge_count
     , node_splits
     )
 
 
 -- Function to build the tree with node splits
-build :: PartialTree s -> (Int -> Tree s)
+build :: Show s => PartialTree s -> (Int -> Tree s) -- TODO: remove show
 build partialTree =
     -- Build root list with the above function
     let (rootNodeList, _) = build_root_list partialTree in

@@ -92,7 +92,7 @@ build_binary_persistent_tree_high_out_degree (per_empty, per_insert, per_delete)
     persistent_tree
 
 
-binary_tree_test_insert :: Eq s => EPH_BST Int s -> PER_BST Int s -> Int -> Bool
+binary_tree_test_insert :: (Show s, Eq s) => EPH_BST Int s -> PER_BST Int s -> Int -> Bool -- TODO: remove show
 binary_tree_test_insert eph per num =
     let (ephemeral_list, persistent_tree) = build_binary_tree_with_duplicates eph per num 42 in
     let build_persistent_tree = build persistent_tree in

@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.figure as fig
 from collections import defaultdict
 
 from math import log2
@@ -103,6 +104,8 @@ def plot_insertion_deletion_worst_case_size_with_node_splits():
     plt.ylabel("Splits / Updates")
     plt.xscale("log")
 
+    plt.subplots_adjust(hspace=0.6)
+
     # plt.show()
     savefig("space_worst_case")
 
@@ -130,6 +133,8 @@ def plot_insertion_deletion_worst_case_range_size_with_node_splits():
     plt.xlabel("Number of Updates")
     plt.ylabel("Splits / Updates")
     # plt.xscale("log")
+
+    plt.subplots_adjust(hspace=0.6)
 
     # plt.show()
     savefig("space_worst_case_range")
@@ -239,7 +244,7 @@ def plot_build_runtime():
     with open("data/bst_unbalanced_dag_build_time_insert_and_delete.csv") as f:
         data = [tuple(line.strip().split(",")) for line in f.readlines()[1:]]
         data = [(int(seed), 2 * int(n), float(time)) for seed, n, time in data]
-        data = [(seed, n, time / (n ** 2.5)) for seed, n, time in data]
+        data = [(seed, n, time / n) for seed, n, time in data]
 
     batch_times = defaultdict(lambda: [])
     for seed, n, time in data:
@@ -261,7 +266,7 @@ def plot_build_runtime():
     plt.plot(*zip(*times), ".", color="black", label="Average Time for fixed seed")
     plt.plot(*zip(*avg), "o:", color="red", label="Average Time over seeds")
 
-    plt.title("DAG Build Time Experiment\nUnbalanced BST with random Insertion and Deletion Updates")
+    # plt.title("DAG Build Time Experiment\nUnbalanced BST with random Insertion and Deletion Updates")
     plt.xlabel("Number of Updates")
     plt.ylabel("Runtime / Updates")
 
@@ -269,7 +274,8 @@ def plot_build_runtime():
     # plt.ylim(ymin=0)
 
     plt.legend()
-    plt.show()
+    # plt.show()
+    savefig("build_insert_delete")
 
 
 def plot_worst_case_build_runtime():
@@ -289,7 +295,7 @@ def plot_worst_case_build_runtime():
     plt.plot(*zip(*times), ".", color="black", label="Times")
     plt.plot(*zip(*avg), "o:", color="red", label="Average Time")
 
-    plt.title("DAG Build Time Experiment\nUnbalanced BST path with repeated Insertion and Deletion of leaf")
+    # plt.title("DAG Build Time Experiment\nUnbalanced BST path with repeated Insertion and Deletion of leaf")
     plt.xlabel("Number of Updates")
     plt.ylabel("Runtime / Updates")
 
@@ -297,7 +303,8 @@ def plot_worst_case_build_runtime():
     # plt.ylim(ymin=0)
 
     plt.legend()
-    plt.show()
+    # plt.show()
+    savefig("build_worst_case")
 
 
 def plot_query_insertion_only_sum():
@@ -436,7 +443,7 @@ def plot_sanity_test_runtime():
     plt.plot(*zip(*times), ".", color="black", label="Average Time for fixed seed")
     plt.plot(*zip(*avg), "o:", color="red", label="Average Time over seeds")
 
-    plt.title("Sanity Time Experiment\nPerfect BST Query all nodes in random order")
+    # plt.title("Sanity Time Experiment\nPerfect BST Query all nodes in random order")
     plt.xlabel("Number of Queries (q)")
     plt.ylabel("Runtime / (q lg$^4$ q)")
 
@@ -444,7 +451,8 @@ def plot_sanity_test_runtime():
     plt.ylim(ymin=0)
 
     plt.legend()
-    plt.show()
+    # plt.show()
+    savefig("time_sanity")
 
 
 
@@ -452,8 +460,8 @@ if __name__ == "__main__":
     ### SIZE
     # plot_insertion_size()
     # plot_insertion_deletion_size()
-    # plot_insertion_deletion_worst_case_size_with_node_splits()
-    # plot_insertion_deletion_worst_case_range_size_with_node_splits()
+    plot_insertion_deletion_worst_case_size_with_node_splits()
+    plot_insertion_deletion_worst_case_range_size_with_node_splits()
     # plot_insertion_deletion_worst_case_range_size_node_splits()
 
     ### UPDATE
@@ -480,4 +488,4 @@ if __name__ == "__main__":
     # plot_query_relative_worst_case_insert_delete_contains_leaf()
 
     # SANITY TIME
-    plot_sanity_test_runtime()
+    # plot_sanity_test_runtime()
