@@ -101,9 +101,6 @@ binaryTreeTestInsert eph per num =
     ) (zip [0 .. num] (reverse ephemeralList))
 
 
-
--- TODO: more refractor
--- Refractor creating the trees? They are created almost the same
 binaryTreeTestDelete :: Show s => Eq s => EPH_BST Int s -> PER_BST Int s -> Int -> Bool
 binaryTreeTestDelete (ephEmpty, ephInsert, ephDelete) (perEmpty, perInsert, perDelete) num =
     let insertSeed = 42 in
@@ -187,9 +184,6 @@ binaryTreeHighTimeOutDegreeNode (ephEmpty, ephInsert, ephDelete) (perEmpty, perI
     ) (zip [checkTimeFrom .. checkTimeFrom + num] (reverse ephemeralList))
 
 
-
-
--- TODO: Comments and refractor building random access lists test
 
 
 randomAccessListCons :: Int -> Int -> Bool

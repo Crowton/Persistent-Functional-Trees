@@ -458,34 +458,34 @@ def plot_sanity_test_runtime():
 
 if __name__ == "__main__":
     ### SIZE
-    # plot_insertion_size()
-    # plot_insertion_deletion_size()
+    plot_insertion_size()
+    plot_insertion_deletion_size()
     plot_insertion_deletion_worst_case_size_with_node_splits()
     plot_insertion_deletion_worst_case_range_size_with_node_splits()
-    # plot_insertion_deletion_worst_case_range_size_node_splits()
+    plot_insertion_deletion_worst_case_range_size_node_splits()
 
     ### UPDATE
-    # plot_update_runtime(
-    #     "data/bst_unbalanced_update_insert_total_time_FULL.csv",
-    #     "Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates",
-    #     "update_relative_inserts"
-    # )
-    # plot_update_runtime(
-    #     "data/bst_unbalanced_update_insert_and_delete_total_time.csv",
-    #     "Update Time Increase Experiment\nUnbalanced BST with Insertion and Deletion Updates",
-    #     "update_relative_insert_and_delete"
-    # )
+    plot_update_runtime(
+        "data/bst_unbalanced_update_insert_total_time_FULL.csv",
+        "Update Time Increase Experiment\nUnbalanced BST with only random Insertion Updates",
+        "update_relative_inserts"
+    )
+    plot_update_runtime(
+        "data/bst_unbalanced_update_insert_and_delete_total_time.csv",
+        "Update Time Increase Experiment\nUnbalanced BST with Insertion and Deletion Updates",
+        "update_relative_insert_and_delete"
+    )
 
-    # plot_RB_update_insertion_time()
+    plot_RB_update_insertion_time()
 
     ### DAG BUILDING
-    # plot_build_runtime()
-    # plot_worst_case_build_runtime()
+    plot_build_runtime()
+    plot_worst_case_build_runtime()
 
     ### QUERY
-    # plot_query_insertion_only_sum()
-    # plot_query_worst_case_insert_delete_contains_leaf()
-    # plot_query_relative_worst_case_insert_delete_contains_leaf()
+    plot_query_insertion_only_sum()
+    plot_query_worst_case_insert_delete_contains_leaf()
+    plot_query_relative_worst_case_insert_delete_contains_leaf()
 
     # SANITY TIME
-    # plot_sanity_test_runtime()
+    plot_sanity_test_runtime()

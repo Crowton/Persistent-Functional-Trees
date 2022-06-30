@@ -46,13 +46,9 @@ import Control.Monad.IO.Class
 
 import System.Random
 
-import Data.List
-import Debug.Trace -- TODO: remove imports
-
 
 -- Tests printing small trees to the terminal --
 
--- smallEphemeralTreeBuild :: Show s => EPHBST Int s -> IO ()
 smallEphemeralTreeBuild (ephEmpty, ephInsert, ephDelete) ephContains = do
     let tree =
             ephEmpty
@@ -525,7 +521,6 @@ sanityRuntimeCheck = do
 
     let sizeLoop size = do
         let seedLoop seed = do
-            -- TODO: move this to generator code space
             let ephBuilder :: Ord e => [e] -> Tree e -> Tree e
                 ephBuilder elements tree =
                     case elements of
@@ -552,10 +547,6 @@ sanityRuntimeCheck = do
                     when ((tail elms) /= []) (queryLoop (tail elms))
                 
                 queryLoop queryElementsF
-
-                -- TODO: is this better? Or is there allocation issues?
-                -- let res = map (\elm -> EPH.contains elm ephF) queryElementsF
-                -- let !resF = force res
 
                 end <- liftIO getCurrentTime
 
@@ -598,9 +589,7 @@ smallDagBuild (perEmpty, perInsert, perDelete) = do
     putStrLn (show (currentTree persistentTree))
 
 
--- TODO: similar??
 updateInsertTotalRuntimeTest (ephEmpty, ephInsert, _) (perEmpty, perInsert, _) = do
-    -- TODO: scale seed and repeats automaically
     let sizeStart = 48269 -- 10000
     let sizeIncrMul = 1.3 :: Float
     let sizeEnd = 1000000
@@ -682,15 +671,11 @@ updateInsertRangeTotalRuntimeTest (ephEmpty, ephInsert, _) (perEmpty, perInsert,
     sizeLoop sizeStart
 
 updateInsertAndDeleteTotalRuntimeTest (ephEmpty, ephInsert, ephDelete) (perEmpty, perInsert, perDelete) = do
-    -- TODO: scale seed and repeats automaically
     let sizeStart = 10000
     let sizeIncrMul = 1.3 :: Float
     let sizeEnd = 1000000
 
     let seedStart = 0
-    -- let seedEnd = 30
-
-    -- let repeats = 10
 
     putStrLn "seed,n,eph,per"
 
@@ -735,16 +720,12 @@ updateInsertAndDeleteTotalRuntimeTest (ephEmpty, ephInsert, ephDelete) (perEmpty
 
     sizeLoop sizeStart
 
--- TODO: refracter to take builder function
 dagBuildInsertOnlySpeedTest (perEmpty, perInsert, perDelete) = do
     let sizeStart = 500
     let sizeIncrMul = 1.3 :: Float
     let sizeEnd = 20000000
 
     let seedStart = 0
-    -- let seedEnd = 30
-
-    -- let repeats = 10
 
     putStrLn "seed,n,time"
 
@@ -753,8 +734,6 @@ dagBuildInsertOnlySpeedTest (perEmpty, perInsert, perDelete) = do
         let repeats = if size < 10000 then 10 else 2
 
         let seedLoop seed = do
-            -- TODO: this is similar to build and destroy method, refractor
-            -- TODO: Move to random test file
             let pureGen = mkStdGen seed
             let randomPermutation = randomShuffle size pureGen
 
@@ -792,9 +771,6 @@ dagBuildInsertDeleteSpeedTest (perEmpty, perInsert, perDelete) = do
     let sizeEnd = 20000
 
     let seedStart = 0
-    -- let seedEnd = 30
-
-    -- let repeats = 10
 
     putStrLn "seed,n,time,splits"
 
@@ -803,8 +779,6 @@ dagBuildInsertDeleteSpeedTest (perEmpty, perInsert, perDelete) = do
         let repeats = if size < 5000 then 10 else 2
 
         let seedLoop seed = do
-            -- TODO: this is similar to build and destroy method, refractor
-            -- TODO: Move to random test file
             let pureGen = mkStdGen seed
             let randomPermutationInsert = randomShuffle size pureGen
 
