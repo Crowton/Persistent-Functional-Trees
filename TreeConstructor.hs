@@ -1,5 +1,5 @@
 
-module Tree_Constructor where
+module TreeConstructor where
 
 import DataRecords as D
 
@@ -22,14 +22,14 @@ construct fieldCount rootMap time =
                             = map (\fieldNum ->
                                     let validEdges
                                             = filter (\e ->
-                                                        field_from e == fieldNum
-                                                        && frozen_time_from e <= time
-                                                        && time < frozen_time_to e
+                                                        fieldFrom e == fieldNum
+                                                        && frozenTimeFrom e <= time
+                                                        && time < frozenTimeTo e
                                             ) fields in
                                     case validEdges of
                                         [] -> gen Nothing
-                                        [FrozenEdge {node_to=node_to}] ->
-                                            gen (Just node_to)
+                                        [FrozenEdge {nodeTo=nodeTo}] ->
+                                            gen (Just nodeTo)
                                         _ -> error ("Multiple valid edges at time " ++ show time ++ "!")
                             ) [0 .. (fieldCount - 1)]
                     in

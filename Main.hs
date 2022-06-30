@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use camelCase" #-}
 {-# LANGUAGE BangPatterns #-}
 
 module Main where
@@ -11,23 +10,23 @@ import System.IO
 
 import DataRecords
 
-import Binary_Tree_ephemeral as EPH
-import Binary_Tree_persistent_mock as PER_M
-import Binary_Tree_persistent as PER
+import BinaryTreeEphemeral as EPH
+import BinaryTreePersistentMock as PERmock
+import BinaryTreePersistent as PER
 
-import RBTree_ephemeral as RB
-import RBTree_persistent as RB_per
+import RBTreeEphemeral as RB
+import RBTreePersistent as RBPer
 
-import qualified Random_access_list_ephemeral as RAL
-import qualified Random_access_list_persistent as RAL_per
+import qualified RandomAccessListEphemeral as RAL
+import qualified RandomAccessListPersistent as RALPer
 
-import Persistent_update
-import DAG_construction
-import Tree_Constructor
+import PersistentUpdate
+import DAGconstruction
+import TreeConstructor
 
 import qualified Data.Map.Strict as MB
 
-import Random_Test
+import RandomTest
 
 import Prettify
 
@@ -53,63 +52,63 @@ import Debug.Trace -- TODO: remove imports
 
 -- Tests printing small trees to the terminal --
 
--- small_ephemeral_tree_build :: Show s => EPH_BST Int s -> IO ()
-small_ephemeral_tree_build (eph_empty, eph_insert, eph_delete) eph_contains = do
+-- smallEphemeralTreeBuild :: Show s => EPHBST Int s -> IO ()
+smallEphemeralTreeBuild (ephEmpty, ephInsert, ephDelete) ephContains = do
     let tree =
-            eph_empty
-            & eph_insert 3
-            & eph_insert 1
-            & eph_insert 2
-            & eph_insert 4
-            & eph_delete 3
+            ephEmpty
+            & ephInsert 3
+            & ephInsert 1
+            & ephInsert 2
+            & ephInsert 4
+            & ephDelete 3
 
-    putStrLn (pretty_tree tree)
-    putStrLn ("Contains 1: " ++ (show (eph_contains 1 tree)) ++ "\n")
+    putStrLn (prettyTree tree)
+    putStrLn ("Contains 1: " ++ (show (ephContains 1 tree)) ++ "\n")
 
     let tree2 =
-            eph_empty
-            & eph_insert 1
-            & eph_insert 2
-            & eph_insert 3
-            & eph_insert 4
-            & eph_insert 5
-            & eph_insert 6
-            & eph_insert 7
-            & eph_insert 8
-            & eph_insert 9
-            & eph_delete 4
+            ephEmpty
+            & ephInsert 1
+            & ephInsert 2
+            & ephInsert 3
+            & ephInsert 4
+            & ephInsert 5
+            & ephInsert 6
+            & ephInsert 7
+            & ephInsert 8
+            & ephInsert 9
+            & ephDelete 4
 
-    putStrLn (pretty_tree tree2)
+    putStrLn (prettyTree tree2)
 
-small_persistent_tree_build (per_empty, per_insert, per_delete) = do
-    let persistent_tree =
-            per_empty
-            & per_insert 3
-            & per_insert 3
-            & per_insert 2
-            & per_insert 1
-            & per_insert 4
-            & per_delete 2
-            & per_delete 4
-            & per_delete 5
+smallPersistentTreeBuild (perEmpty, perInsert, perDelete) = do
+    let persistentTree =
+            perEmpty
+            & perInsert 3
+            & perInsert 3
+            & perInsert 2
+            & perInsert 1
+            & perInsert 4
+            & perDelete 2
+            & perDelete 4
+            & perDelete 5
 
-    let build_tree = build persistent_tree
+    let buildTree = build persistentTree
 
-    -- putStrLn ("TimeTree\n" ++ pretty_time_tree (fst (head (rootList persistent_tree))) (currentTree persistent_tree) ++ "\n")
+    -- putStrLn ("TimeTree\n" ++ prettyTimeTree (fst (head (rootList persistentTree))) (currentTree persistentTree) ++ "\n")
 
-    putStrLn ("Time 0:\n" ++ pretty_tree (build_tree 0) ++ "\n")
-    putStrLn ("Time 1:\n" ++ pretty_tree (build_tree 1) ++ "\n")
-    putStrLn ("Time 2:\n" ++ pretty_tree (build_tree 2) ++ "\n")
-    putStrLn ("Time 3:\n" ++ pretty_tree (build_tree 3) ++ "\n")
-    putStrLn ("Time 4:\n" ++ pretty_tree (build_tree 4) ++ "\n")
-    putStrLn ("Time 5:\n" ++ pretty_tree (build_tree 5) ++ "\n")
-    putStrLn ("Time 6:\n" ++ pretty_tree (build_tree 6) ++ "\n")
-    putStrLn ("Time 7:\n" ++ pretty_tree (build_tree 7) ++ "\n")
-    putStrLn ("Time 8:\n" ++ pretty_tree (build_tree 8) ++ "\n")
-    putStrLn ("Time 9:\n" ++ pretty_tree (build_tree 9) ++ "\n")
+    putStrLn ("Time 0:\n" ++ prettyTree (buildTree 0) ++ "\n")
+    putStrLn ("Time 1:\n" ++ prettyTree (buildTree 1) ++ "\n")
+    putStrLn ("Time 2:\n" ++ prettyTree (buildTree 2) ++ "\n")
+    putStrLn ("Time 3:\n" ++ prettyTree (buildTree 3) ++ "\n")
+    putStrLn ("Time 4:\n" ++ prettyTree (buildTree 4) ++ "\n")
+    putStrLn ("Time 5:\n" ++ prettyTree (buildTree 5) ++ "\n")
+    putStrLn ("Time 6:\n" ++ prettyTree (buildTree 6) ++ "\n")
+    putStrLn ("Time 7:\n" ++ prettyTree (buildTree 7) ++ "\n")
+    putStrLn ("Time 8:\n" ++ prettyTree (buildTree 8) ++ "\n")
+    putStrLn ("Time 9:\n" ++ prettyTree (buildTree 9) ++ "\n")
 
-small_persistent_rotate = do
-    let per_tree =
+smallPersistentRotate = do
+    let perTree =
             PER.empty
             & PER.insert 6
             & PER.insert 2
@@ -118,14 +117,14 @@ small_persistent_rotate = do
             & PER.insert 4
             & PER.insert 3
             & PER.insert 5
-            & update (\_ -> PER.rotate_right_left) Nothing
+            & update (\_ -> PER.rotateRightLeft) Nothing
 
-    let tree = build per_tree
+    let tree = build perTree
 
-    putStrLn ("Before rotation:\n" ++ pretty_tree (tree 7) ++ "\n")
-    putStrLn ("After rotation:\n" ++ pretty_tree (tree 8) ++ "\n")
+    putStrLn ("Before rotation:\n" ++ prettyTree (tree 7) ++ "\n")
+    putStrLn ("After rotation:\n" ++ prettyTree (tree 8) ++ "\n")
 
-small_ephemeral_list_build = do
+smallEphemeralListBuild = do
     let list =
             RAL.empty
             & RAL.cons 1
@@ -138,7 +137,7 @@ small_ephemeral_list_build = do
             & RAL.cons 8
             & RAL.cons 9
     
-    putStrLn ((pretty_tree list) ++ "\n")
+    putStrLn ((prettyTree list) ++ "\n")
 
     putStrLn ("Head: " ++ show (RAL.head list) ++ "\n")
     putStrLn ("Lookup 5: " ++ show (RAL.lookup 5 list) ++ "\n")
@@ -147,7 +146,7 @@ small_ephemeral_list_build = do
             list
             & RAL.update (7, 11)
     
-    putStrLn ((pretty_tree list2) ++ "\n")
+    putStrLn ((prettyTree list2) ++ "\n")
 
     let list3 =
             list2
@@ -155,16 +154,16 @@ small_ephemeral_list_build = do
             & RAL.tail
             & RAL.tail
     
-    putStrLn ((pretty_tree list3) ++ "\n")
+    putStrLn ((prettyTree list3) ++ "\n")
 
 
 -- Tests for correctness --
 
-correctness_test eph_build per_build = do
+correctnessTest ephBuild perBuild = do
     putStrLn "Running tests"
     hFlush stdout
 
-    let test_run name test =
+    let testRun name test =
             do { putStr name
                ; hFlush stdout
 
@@ -174,35 +173,35 @@ correctness_test eph_build per_build = do
                }
         
     -- Insertion
-    test_run
+    testRun
         "Insertion test ............ "
-        (binary_tree_test_insert eph_build per_build 1000)
+        (binaryTreeTestInsert ephBuild perBuild 1000)
 
     -- Deletion
-    test_run
+    testRun
         "Deletion test ............. "
-        (binary_tree_test_delete eph_build per_build 1000)
+        (binaryTreeTestDelete ephBuild perBuild 1000)
 
     -- Deletion, which creates notes with high out degree
     let size = 1000
-    test_run
+    testRun
         "Node non splitting test ... "
-        (binary_tree_high_time_out_degree_node eph_build per_build build_non_split size)
+        (binaryTreeHighTimeOutDegreeNode ephBuild perBuild buildNonSplit size)
     
-    test_run
+    testRun
         "Node splitting test ....... "
-        (binary_tree_high_time_out_degree_node eph_build per_build build size)
+        (binaryTreeHighTimeOutDegreeNode ephBuild perBuild build size)
 
-delete_persistent_compare = do
-    let build_elm = [2, 5, 8, 3, 9, 0, 1]
-    let del_elm   = [0, 5, 3, 8, 1, 2, 9]
+deletePersistentCompare = do
+    let buildElm = [2, 5, 8, 3, 9, 0, 1]
+    let delElm   = [0, 5, 3, 8, 1, 2, 9]
 
-    let per_mock = foldl (\t e -> PER_M.insert e t) PER_M.construct_empty_tree build_elm
-    let per_real = foldl (\t e -> PER.insert e t) PER.empty build_elm
+    let perMock = foldl (\t e -> PERmock.insert e t) PERmock.constructEmptyTree buildElm
+    let perReal = foldl (\t e -> PER.insert e t) PER.empty buildElm
 
-    putStrLn ("Initial tree:\n" ++ (pretty_time_tree 1 (currentTree per_mock)) ++ "\n")
+    putStrLn ("Initial tree:\n" ++ (prettyTimeTree 1 (currentTree perMock)) ++ "\n")
 
-    let eq_per PartialTree {edgeFreezer=edgeFreezer1
+    let eqPer PartialTree {edgeFreezer=edgeFreezer1
                     , idStaticList=idStaticList1
                     , rootList=rootList1
                     , idCount=idCount1
@@ -230,24 +229,24 @@ delete_persistent_compare = do
     let loop elements mock real = do
             let elm = head elements
 
-            let new_mock = PER_M.delete elm mock
-            let new_real = PER.delete elm real
+            let newMock = PERmock.delete elm mock
+            let newReal = PER.delete elm real
 
             putStrLn ("After deleting " ++ show elm ++ ":")
-            if eq_per new_mock new_real
-                then putStrLn ("All good! The tree is now:\n" ++ (pretty_time_tree 1 (currentTree new_mock)) ++ "\n")
-                else putStrLn ("Mock:\n" ++ show new_mock ++ "\n\n"
-                            ++ "Real:\n" ++ show new_real ++ "\n")
+            if eqPer newMock newReal
+                then putStrLn ("All good! The tree is now:\n" ++ (prettyTimeTree 1 (currentTree newMock)) ++ "\n")
+                else putStrLn ("Mock:\n" ++ show newMock ++ "\n\n"
+                            ++ "Real:\n" ++ show newReal ++ "\n")
 
-            when ((tail elements) /= []) (loop (tail elements) new_mock new_real)
+            when ((tail elements) /= []) (loop (tail elements) newMock newReal)
 
-    loop del_elm per_mock per_real
+    loop delElm perMock perReal
 
-random_access_list_correctness = do
+randomAccessListCorrectness = do
     putStrLn "Running tests"
     hFlush stdout
 
-    let test_run name test =
+    let testRun name test =
             do { putStr name
                ; hFlush stdout
 
@@ -257,82 +256,82 @@ random_access_list_correctness = do
                }
         
     -- Cons
-    test_run
+    testRun
         "Cons test .......... "
-        (random_access_list_cons 1000 42)
+        (randomAccessListCons 1000 42)
 
     -- Update
-    test_run
+    testRun
         "Update test ........ "
-        (random_access_list_update_uniform 1000 42 43 44)
+        (randomAccessListUpdateUniform 1000 42 43 44)
 
     -- Tail
-    test_run
+    testRun
         "Tail test .......... "
-        (random_access_list_tail 5 42)
+        (randomAccessListTail 5 42)
 
     -- Update in end
-    test_run
+    testRun
         "Update last tast ... "
-        (random_access_list_update_final_element 1000 42 43)
+        (randomAccessListUpdateFinalElement 1000 42 43)
 
 
 -- Checks for size of objects -- 
 
-ephemeral_tree_node_size_test (eph_empty, eph_insert, _) = do
-    let tree_0 = eph_empty :: Tree Int
-    let tree_1
-            = tree_0
-            & eph_insert 1
+ephemeralTreeNodeSizeTest (ephEmpty, ephInsert, _) = do
+    let tree0 = ephEmpty :: Tree Int
+    let tree1
+            = tree0
+            & ephInsert 1
 
-    size_0 <- recursiveSizeNF tree_0
-    size_1 <- recursiveSizeNF tree_1
+    size0 <- recursiveSizeNF tree0
+    size1 <- recursiveSizeNF tree1
 
-    putStrLn ("Size of leaf: " ++ show size_0)
-    putStrLn ("Delta size of single insert (0 -> 1): " ++ show (size_1 - size_0))
+    putStrLn ("Size of leaf: " ++ show size0)
+    putStrLn ("Delta size of single insert (0 -> 1): " ++ show (size1 - size0))
 
-    let tree_2
-            = tree_1
-            & eph_insert 2
+    let tree2
+            = tree1
+            & ephInsert 2
 
-    size_2 <- recursiveSizeNF tree_2
+    size2 <- recursiveSizeNF tree2
 
-    putStrLn ("Delta size of single insert (1 -> 2): " ++ show (size_2 - size_1))
+    putStrLn ("Delta size of single insert (1 -> 2): " ++ show (size2 - size1))
 
-    let tree_7
-            = tree_0
-            & eph_insert 4
-            & eph_insert 2
-            & eph_insert 6
-            & eph_insert 1
-            & eph_insert 3
-            & eph_insert 5
-            & eph_insert 7
-    let tree_8
-            = tree_7
-            & eph_insert 8
+    let tree7
+            = tree0
+            & ephInsert 4
+            & ephInsert 2
+            & ephInsert 6
+            & ephInsert 1
+            & ephInsert 3
+            & ephInsert 5
+            & ephInsert 7
+    let tree8
+            = tree7
+            & ephInsert 8
 
-    size_7 <- recursiveSizeNF tree_7
-    size_8 <- recursiveSizeNF tree_8
+    size7 <- recursiveSizeNF tree7
+    size8 <- recursiveSizeNF tree8
 
-    putStrLn ("Delta size of single insert (7 -> 8): " ++ show (size_8 - size_7))
+    putStrLn ("Delta size of single insert (7 -> 8): " ++ show (size8 - size7))
 
-    let tree_9
-            = tree_8
-            & eph_insert 0
+    let tree9
+            = tree8
+            & ephInsert 0
 
-    size_9 <- recursiveSizeNF tree_9
+    size9 <- recursiveSizeNF tree9
 
-    putStrLn ("Delta size of single insert (8 -> 9): " ++ show (size_9 - size_8))
+    putStrLn ("Delta size of single insert (8 -> 9): " ++ show (size9 - size8))
 
-    putStrLn ("Size of tree 0: " ++ show size_0)
-    putStrLn ("Size of tree 1: " ++ show size_1)
-    putStrLn ("Size of tree 2: " ++ show size_2)
-    putStrLn ("Size of tree 7: " ++ show size_7)
-    putStrLn ("Size of tree 8: " ++ show size_8)
-    putStrLn ("Size of tree 9: " ++ show size_9)
+    putStrLn ("Size of tree 0: " ++ show size0)
+    putStrLn ("Size of tree 1: " ++ show size1)
+    putStrLn ("Size of tree 2: " ++ show size2)
+    putStrLn ("Size of tree 7: " ++ show size7)
+    putStrLn ("Size of tree 8: " ++ show size8)
+    putStrLn ("Size of tree 9: " ++ show size9)
 
-sanity_size_test = do
+sanitySizeTest = do
     -- let l = [] :: [Int]
     -- let l = [1::Int .. 100::Int]
     -- print (force l)
@@ -384,179 +383,179 @@ sanity_size_test = do
     size <- recursiveSizeNF l
     putStrLn (show size)
 
-    -- int_size <- recursiveSizeNF (1 :: Int)
-    -- putStrLn (show int_size)
+    -- intSize <- recursiveSizeNF (1 :: Int)
+    -- putStrLn (show intSize)
 
-    -- int_size <- recursiveSizeNF (2147483647 :: Int)
-    -- putStrLn (show int_size)
+    -- intSize <- recursiveSizeNF (2147483647 :: Int)
+    -- putStrLn (show intSize)
 
-    -- int_size <- recursiveSizeNF (9223372036854775807 :: Int)
-    -- putStrLn (show int_size)
+    -- intSize <- recursiveSizeNF (9223372036854775807 :: Int)
+    -- putStrLn (show intSize)
 
-    -- int_size <- recursiveSizeNF (9223372036854775807 :: Int)
-    -- putStrLn (show int_size)
+    -- intSize <- recursiveSizeNF (9223372036854775807 :: Int)
+    -- putStrLn (show intSize)
 
 
 -- Tests for size of build dag --
 
-size_compare_test builder = do
-    let size_start = 10
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 1000
+sizeCompareTest builder = do
+    let sizeStart = 10
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 1000
 
-    let seed_start = 0
-    let seed_end = 30
+    let seedStart = 0
+    let seedEnd = 30
 
     putStrLn "seed,n,eph,per"
 
-    let size_loop size = do
-        let seed_loop seed = do
+    let sizeLoop size = do
+        let seedLoop seed = do
             let (eph, per) = builder size seed
-            let (per_root_list, _) = build_root_list per
+            let (perRootList, _) = buildRootList per
 
-            eph_size <- recursiveSizeNF eph
-            per_size <- recursiveSizeNF per_root_list
+            ephSize <- recursiveSizeNF eph
+            perSize <- recursiveSizeNF perRootList
 
-            putStrLn (show seed ++ "," ++ show size ++ "," ++ show eph_size ++ "," ++ show per_size)
+            putStrLn (show seed ++ "," ++ show size ++ "," ++ show ephSize ++ "," ++ show perSize)
             hFlush stdout
 
-            when (seed + 1 < seed_end) (seed_loop (seed + 1))
+            when (seed + 1 < seedEnd) (seedLoop (seed + 1))
 
-        seed_loop seed_start
+        seedLoop seedStart
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
-size_worst_case_compare_test (eph_empty, eph_insert, eph_delete) (per_empty, per_insert, per_delete) = do
-    let size_start = 10
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 10000
+sizeWorstCaseCompareTest (ephEmpty, ephInsert, ephDelete) (perEmpty, perInsert, perDelete) = do
+    let sizeStart = 10
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 10000
 
     putStrLn "n,eph,per,splits"
 
-    let size_loop size = do
+    let sizeLoop size = do
         -- TRUE n = 3 * n
-        let (eph_base, per_base) = foldl (\(eph_h : eph_t, per) element ->
-                                            let next_eph = eph_insert element eph_h in
-                                            let next_per = per_insert element per in
-                                            (next_eph : eph_h : eph_t, next_per)
-                                   ) ([eph_empty], per_empty) [1 :: Int .. size]
+        let (ephBase, perBase) = foldl (\(ephH : ephT, per) element ->
+                                            let nextEph = ephInsert element ephH in
+                                            let nextPer = perInsert element per in
+                                            (nextEph : ephH : ephT, nextPer)
+                                   ) ([ephEmpty], perEmpty) [1 :: Int .. size]
         
-        let (eph_final, per_final) = foldl (\(eph_h : eph_t, per) _ ->
-                                              let next_eph = eph_insert (size + 1) eph_h in
-                                              let next_next_eph = eph_delete (size + 1) next_eph in
-                                              let next_per = per_delete (size + 1) (per_insert (size + 1) per) in
-                                              (next_next_eph : next_eph : eph_h : eph_t, next_per)
-                                     ) (eph_base, per_base) [1 :: Int .. size]
+        let (ephFinal, perFinal) = foldl (\(ephH : ephT, per) _ ->
+                                              let nextEph = ephInsert (size + 1) ephH in
+                                              let nextNextEph = ephDelete (size + 1) nextEph in
+                                              let nextPer = perDelete (size + 1) (perInsert (size + 1) per) in
+                                              (nextNextEph : nextEph : ephH : ephT, nextPer)
+                                     ) (ephBase, perBase) [1 :: Int .. size]
 
-        let (per_root_list, splits) = build_root_list per_final
+        let (perRootList, splits) = buildRootList perFinal
 
-        eph_size <- recursiveSizeNF eph_final
-        per_size <- recursiveSizeNF per_root_list
+        ephSize <- recursiveSizeNF ephFinal
+        perSize <- recursiveSizeNF perRootList
 
-        putStrLn (show size ++ "," ++ show eph_size ++ "," ++ show per_size ++ "," ++ show splits)
+        putStrLn (show size ++ "," ++ show ephSize ++ "," ++ show perSize ++ "," ++ show splits)
         hFlush stdout
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
 
-size_worst_case_test (per_empty, per_insert, per_delete) = do
-    let size_start = 10
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 10000000
+sizeWorstCaseTest (perEmpty, perInsert, perDelete) = do
+    let sizeStart = 10
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 10000000
 
     putStrLn "n,per,splits"
 
-    let size_loop size = do
+    let sizeLoop size = do
         -- TRUE n = 3 * n
-        let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
-        let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
+        let perBase = foldl (flip perInsert) perEmpty [1 :: Int .. size]
+        let per = foldl (\p _ -> perDelete (size + 1) (perInsert (size + 1) p)) perBase [1 .. size]
 
-        let (per_root_list, splits) = build_root_list per
+        let (perRootList, splits) = buildRootList per
 
-        per_size <- recursiveSizeNF per_root_list
+        perSize <- recursiveSizeNF perRootList
 
-        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show splits)
+        putStrLn (show size ++ "," ++ show perSize ++ "," ++ show splits)
         hFlush stdout
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
 
-size_worst_case_range_test (per_empty, per_insert, per_delete) = do
-    let size_start = 1
-    let size_end = 10000
+sizeWorstCaseRangeTest (perEmpty, perInsert, perDelete) = do
+    let sizeStart = 1
+    let sizeEnd = 10000
 
     putStrLn "n,per,splits"
 
-    let size_loop size = do
+    let sizeLoop size = do
         -- TRUE n = 3 * n
-        let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
-        let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
+        let perBase = foldl (flip perInsert) perEmpty [1 :: Int .. size]
+        let per = foldl (\p _ -> perDelete (size + 1) (perInsert (size + 1) p)) perBase [1 .. size]
 
-        let (per_root_list, splits) = build_root_list per
+        let (perRootList, splits) = buildRootList per
 
-        per_size <- recursiveSizeNF per_root_list
+        perSize <- recursiveSizeNF perRootList
 
-        putStrLn (show size ++ "," ++ show per_size ++ "," ++ show splits)
+        putStrLn (show size ++ "," ++ show perSize ++ "," ++ show splits)
         hFlush stdout
 
-        when (size + 1 < size_end) (size_loop (size + 1))
+        when (size + 1 < sizeEnd) (sizeLoop (size + 1))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
 
 -- Tests for run time --
 
-sanity_runtime_check = do
-    let size_start = 1000
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 100000000
+sanityRuntimeCheck = do
+    let sizeStart = 1000
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 100000000
 
-    let seed_start = 0
-    let seed_end = 30
+    let seedStart = 0
+    let seedEnd = 30
 
     let repeats = 10
 
     putStrLn "seed,n,time"
 
-    let size_loop size = do
-        let seed_loop seed = do
+    let sizeLoop size = do
+        let seedLoop seed = do
             -- TODO: move this to generator code space
-            let eph_builder :: Ord e => [e] -> Tree e -> Tree e
-                eph_builder elements tree =
+            let ephBuilder :: Ord e => [e] -> Tree e -> Tree e
+                ephBuilder elements tree =
                     case elements of
                         [] -> tree
                         _  -> let (left, mid : right) = splitAt ((length elements) `div` 2) elements in
-                              eph_builder right (eph_builder left (EPH.insert mid tree))
+                              ephBuilder right (ephBuilder left (EPH.insert mid tree))
             
-            let eph = eph_builder [1 .. size] Leaf
-            let !eph_f = force eph
+            let eph = ephBuilder [1 .. size] Leaf
+            let !ephF = force eph
 
             let pureGen = mkStdGen seed
-            let query_elements = random_shuffle size pureGen
-            let !query_elements_f = force query_elements
+            let queryElements = randomShuffle size pureGen
+            let !queryElementsF = force queryElements
 
-            let repeat_loop itr = do
+            let repeatLoop itr = do
                 start <- liftIO getCurrentTime
 
-                let query_loop elms = do
+                let queryLoop elms = do
                     let q = head elms
                     
-                    let res = EPH.contains q eph_f
-                    let !res_f = force res
+                    let res = EPH.contains q ephF
+                    let !resF = force res
 
-                    when ((tail elms) /= []) (query_loop (tail elms))
+                    when ((tail elms) /= []) (queryLoop (tail elms))
                 
-                query_loop query_elements_f
+                queryLoop queryElementsF
 
                 -- TODO: is this better? Or is there allocation issues?
-                -- let res = map (\elm -> EPH.contains elm eph_f) query_elements_f
-                -- let !res_f = force res
+                -- let res = map (\elm -> EPH.contains elm ephF) queryElementsF
+                -- let !resF = force res
 
                 end <- liftIO getCurrentTime
 
@@ -565,395 +564,395 @@ sanity_runtime_check = do
                 putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime)
                 hFlush stdout
 
-                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+                when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-            repeat_loop 0
+            repeatLoop 0
 
-            when (seed < seed_end - 1) (seed_loop (seed + 1))
+            when (seed < seedEnd - 1) (seedLoop (seed + 1))
 
-        seed_loop seed_start
+        seedLoop seedStart
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
 
-small_dag_build (per_empty, per_insert, per_delete) = do
+smallDagBuild (perEmpty, perInsert, perDelete) = do
     -- let compare' a b = (trace (show (a, b))) $ compare a b
     -- let l = sortBy compare' [9, 8, 7, 6, 5, 1, 2, 3, 4]
     -- putStrLn (show l)
 
-    let persistent_tree =
-            per_empty
-            & per_insert (2::Int)
-            & per_insert 3
-            & per_insert 1
-            & per_insert 4
-            & per_delete 4 & per_insert 4
-            & per_delete 4 & per_insert 4
-            & per_delete 4 & per_insert 4
-            & per_delete 4 & per_insert 4
+    let persistentTree =
+            perEmpty
+            & perInsert (2::Int)
+            & perInsert 3
+            & perInsert 1
+            & perInsert 4
+            & perDelete 4 & perInsert 4
+            & perDelete 4 & perInsert 4
+            & perDelete 4 & perInsert 4
+            & perDelete 4 & perInsert 4
 
-    let !build_tree_thing = force (build_root_list persistent_tree)
+    let !buildTreeThing = force (buildRootList persistentTree)
 
-    putStrLn (show (currentTree persistent_tree))
+    putStrLn (show (currentTree persistentTree))
 
 
 -- TODO: similar??
-update_insert_total_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
+updateInsertTotalRuntimeTest (ephEmpty, ephInsert, _) (perEmpty, perInsert, _) = do
     -- TODO: scale seed and repeats automaically
-    let size_start = 48269 -- 10000
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 1000000
+    let sizeStart = 48269 -- 10000
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 1000000
 
-    let seed_start = 0
-    let seed_end = 15 -- 30
+    let seedStart = 0
+    let seedEnd = 15 -- 30
 
     let repeats = 2  -- 10
 
     putStrLn "seed,n,eph,per"
 
-    let size_loop size = do
-        let seed_loop seed = do
-            let repeat_loop itr = do
+    let sizeLoop size = do
+        let seedLoop seed = do
+            let repeatLoop itr = do
                 let pureGen = mkStdGen seed
-                let !random_permutation = random_shuffle size pureGen
+                let !randomPermutation = randomShuffle size pureGen
 
-                start_eph <- liftIO getCurrentTime
-                let eph = foldl (flip eph_insert) eph_empty random_permutation
-                let !eph_f = force eph
-                end_eph <- liftIO getCurrentTime
-                let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
+                startEph <- liftIO getCurrentTime
+                let eph = foldl (flip ephInsert) ephEmpty randomPermutation
+                let !ephF = force eph
+                endEph <- liftIO getCurrentTime
+                let elapsedTimeEph = realToFrac $ endEph `diffUTCTime` startEph
 
-                start_per <- liftIO getCurrentTime
-                let per = foldl (flip per_insert) per_empty random_permutation
-                let !per_f = force per
-                end_per <- liftIO getCurrentTime
-                let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+                startPer <- liftIO getCurrentTime
+                let per = foldl (flip perInsert) perEmpty randomPermutation
+                let !perF = force per
+                endPer <- liftIO getCurrentTime
+                let elapsedTimePer = realToFrac $ endPer `diffUTCTime` startPer
 
-                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTimeEph ++ "," ++ show elapsedTimePer)
                 hFlush stdout
 
-                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+                when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-            repeat_loop 0
+            repeatLoop 0
 
-            when (seed < seed_end - 1) (seed_loop (seed + 1))
+            when (seed < seedEnd - 1) (seedLoop (seed + 1))
 
-        seed_loop seed_start
+        seedLoop seedStart
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
-update_insert_range_total_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
-    let size_start = 1000
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 10000000
+updateInsertRangeTotalRuntimeTest (ephEmpty, ephInsert, _) (perEmpty, perInsert, _) = do
+    let sizeStart = 1000
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 10000000
 
     let repeats = 20
 
     putStrLn "n,eph,per"
 
-    let size_loop size = do
-        let repeat_loop itr = do
+    let sizeLoop size = do
+        let repeatLoop itr = do
             let !elements = [1 :: Int .. size]
 
-            start_eph <- liftIO getCurrentTime
-            let eph = foldl (flip eph_insert) eph_empty elements
-            let !eph_f = force eph
-            end_eph <- liftIO getCurrentTime
-            let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
+            startEph <- liftIO getCurrentTime
+            let eph = foldl (flip ephInsert) ephEmpty elements
+            let !ephF = force eph
+            endEph <- liftIO getCurrentTime
+            let elapsedTimeEph = realToFrac $ endEph `diffUTCTime` startEph
 
-            start_per <- liftIO getCurrentTime
-            let per = foldl (flip per_insert) per_empty elements
-            let !per_f = force per
-            end_per <- liftIO getCurrentTime
-            let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+            startPer <- liftIO getCurrentTime
+            let per = foldl (flip perInsert) perEmpty elements
+            let !perF = force per
+            endPer <- liftIO getCurrentTime
+            let elapsedTimePer = realToFrac $ endPer `diffUTCTime` startPer
 
-            putStrLn (show size ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
+            putStrLn (show size ++ "," ++ show elapsedTimeEph ++ "," ++ show elapsedTimePer)
             hFlush stdout
 
-            when (itr + 1 < repeats) (repeat_loop (itr + 1))
+            when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-        repeat_loop 0
+        repeatLoop 0
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
-update_insert_and_delete_total_runtime_test (eph_empty, eph_insert, eph_delete) (per_empty, per_insert, per_delete) = do
+updateInsertAndDeleteTotalRuntimeTest (ephEmpty, ephInsert, ephDelete) (perEmpty, perInsert, perDelete) = do
     -- TODO: scale seed and repeats automaically
-    let size_start = 10000
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 1000000
+    let sizeStart = 10000
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 1000000
 
-    let seed_start = 0
-    -- let seed_end = 30
+    let seedStart = 0
+    -- let seedEnd = 30
 
     -- let repeats = 10
 
     putStrLn "seed,n,eph,per"
 
-    let size_loop size = do
-        let seed_end = if size < 25000 then 30 else 15
+    let sizeLoop size = do
+        let seedEnd = if size < 25000 then 30 else 15
         let repeats = if size < 25000 then 10 else 2
 
-        let seed_loop seed = do
-            let repeat_loop itr = do
+        let seedLoop seed = do
+            let repeatLoop itr = do
                 let pureGen = mkStdGen seed
-                let !random_insert_permutation = random_shuffle size pureGen
+                let !randomInsertPermutation = randomShuffle size pureGen
 
                 let pureGen = mkStdGen (-seed)
-                let !random_delete_permutation = random_shuffle size pureGen
+                let !randomDeletePermutation = randomShuffle size pureGen
 
-                start_eph <- liftIO getCurrentTime
-                let eph_base = foldl (flip eph_insert) eph_empty random_insert_permutation
-                let eph = foldl (flip eph_delete) eph_base random_delete_permutation
-                let !eph_f = force eph
-                end_eph <- liftIO getCurrentTime
-                let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
+                startEph <- liftIO getCurrentTime
+                let ephBase = foldl (flip ephInsert) ephEmpty randomInsertPermutation
+                let eph = foldl (flip ephDelete) ephBase randomDeletePermutation
+                let !ephF = force eph
+                endEph <- liftIO getCurrentTime
+                let elapsedTimeEph = realToFrac $ endEph `diffUTCTime` startEph
 
-                start_per <- liftIO getCurrentTime
-                let per_base = foldl (flip per_insert) per_empty random_insert_permutation
-                let per = foldl (flip per_delete) per_base random_delete_permutation
-                let !per_f = force per
-                end_per <- liftIO getCurrentTime
-                let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+                startPer <- liftIO getCurrentTime
+                let perBase = foldl (flip perInsert) perEmpty randomInsertPermutation
+                let per = foldl (flip perDelete) perBase randomDeletePermutation
+                let !perF = force per
+                endPer <- liftIO getCurrentTime
+                let elapsedTimePer = realToFrac $ endPer `diffUTCTime` startPer
 
-                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTimeEph ++ "," ++ show elapsedTimePer)
                 hFlush stdout
 
-                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+                when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-            repeat_loop 0
+            repeatLoop 0
 
-            when (seed < seed_end - 1) (seed_loop (seed + 1))
+            when (seed < seedEnd - 1) (seedLoop (seed + 1))
 
-        seed_loop seed_start
+        seedLoop seedStart
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
 -- TODO: refracter to take builder function
-dag_build_insert_only_speed_test (per_empty, per_insert, per_delete) = do
-    let size_start = 500
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 20000000
+dagBuildInsertOnlySpeedTest (perEmpty, perInsert, perDelete) = do
+    let sizeStart = 500
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 20000000
 
-    let seed_start = 0
-    -- let seed_end = 30
+    let seedStart = 0
+    -- let seedEnd = 30
 
     -- let repeats = 10
 
     putStrLn "seed,n,time"
 
-    let size_loop size = do
-        let seed_end = if size < 10000 then 30 else 15
+    let sizeLoop size = do
+        let seedEnd = if size < 10000 then 30 else 15
         let repeats = if size < 10000 then 10 else 2
 
-        let seed_loop seed = do
+        let seedLoop seed = do
             -- TODO: this is similar to build and destroy method, refractor
             -- TODO: Move to random test file
             let pureGen = mkStdGen seed
-            let random_permutation = random_shuffle size pureGen
+            let randomPermutation = randomShuffle size pureGen
 
-            let per = foldl (flip per_insert) per_empty random_permutation
-            let !per_f = force per
+            let per = foldl (flip perInsert) perEmpty randomPermutation
+            let !perF = force per
 
-            let repeat_loop itr = do
+            let repeatLoop itr = do
                 -- Record building step
                 start <- liftIO getCurrentTime
-                let (root_list, splits) = build_root_list per_f
-                let !root_list_f = force root_list
-                let !splits_f = force splits
+                let (rootList, splits) = buildRootList perF
+                let !rootListF = force rootList
+                let !splitsF = force splits
                 end <- liftIO getCurrentTime
 
                 let elapsedTime = realToFrac $ end `diffUTCTime` start
 
-                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime ++ "," ++ show splits_f)
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime ++ "," ++ show splitsF)
                 hFlush stdout
 
-                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+                when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-            repeat_loop 0
+            repeatLoop 0
 
-            when (seed < seed_end - 1) (seed_loop (seed + 1))
+            when (seed < seedEnd - 1) (seedLoop (seed + 1))
 
-        seed_loop seed_start
+        seedLoop seedStart
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
-dag_build_insert_delete_speed_test (per_empty, per_insert, per_delete) = do
-    let size_start = 500
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 20000
+dagBuildInsertDeleteSpeedTest (perEmpty, perInsert, perDelete) = do
+    let sizeStart = 500
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 20000
 
-    let seed_start = 0
-    -- let seed_end = 30
+    let seedStart = 0
+    -- let seedEnd = 30
 
     -- let repeats = 10
 
     putStrLn "seed,n,time,splits"
 
-    let size_loop size = do
-        let seed_end = if size < 5000 then 30 else 15
+    let sizeLoop size = do
+        let seedEnd = if size < 5000 then 30 else 15
         let repeats = if size < 5000 then 10 else 2
 
-        let seed_loop seed = do
+        let seedLoop seed = do
             -- TODO: this is similar to build and destroy method, refractor
             -- TODO: Move to random test file
             let pureGen = mkStdGen seed
-            let random_permutation_insert = random_shuffle size pureGen
+            let randomPermutationInsert = randomShuffle size pureGen
 
             let pureGen = mkStdGen (-seed)
-            let random_permutation_delete = random_shuffle size pureGen
+            let randomPermutationDelete = randomShuffle size pureGen
 
-            let per = foldl (flip per_delete) (foldl (flip per_insert) per_empty random_permutation_insert) random_permutation_delete
-            let !per_f = force per
+            let per = foldl (flip perDelete) (foldl (flip perInsert) perEmpty randomPermutationInsert) randomPermutationDelete
+            let !perF = force per
 
-            let repeat_loop itr = do
+            let repeatLoop itr = do
                 -- Record building step
                 start <- liftIO getCurrentTime
-                let (root_list, splits) = build_root_list per_f
-                let !root_list_f = force root_list
-                let !splits_f = force splits
+                let (rootList, splits) = buildRootList perF
+                let !rootListF = force rootList
+                let !splitsF = force splits
                 end <- liftIO getCurrentTime
 
                 let elapsedTime = realToFrac $ end `diffUTCTime` start
 
-                -- assert (splits_f <= 2 * size * 3) $ putStrLn "okay"
+                -- assert (splitsF <= 2 * size * 3) $ putStrLn "okay"
 
-                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime ++ "," ++ show splits_f)
+                putStrLn (show seed ++ "," ++ show size ++ "," ++ show elapsedTime ++ "," ++ show splitsF)
                 hFlush stdout
 
-                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+                when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-            repeat_loop 0
+            repeatLoop 0
 
-            when (seed + 1 < seed_end) (seed_loop (seed + 1))
+            when (seed + 1 < seedEnd) (seedLoop (seed + 1))
 
-        seed_loop seed_start
+        seedLoop seedStart
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
-dag_build_worst_case_delete_speed_test (per_empty, per_insert, per_delete) = do
-    let size_start = 500
-    let size_incr_mul = 1.3 :: Float
-    let size_end = 4000
+dagBuildWorstCaseDeleteSpeedTest (perEmpty, perInsert, perDelete) = do
+    let sizeStart = 500
+    let sizeIncrMul = 1.3 :: Float
+    let sizeEnd = 4000
 
     let repeats = 30
 
     putStrLn "n,time,splits"
 
-    let size_loop size = do
+    let sizeLoop size = do
         -- TRUE n = 3 * n
-        let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
-        let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
-        let !per_f = force per
+        let perBase = foldl (flip perInsert) perEmpty [1 :: Int .. size]
+        let per = foldl (\p _ -> perDelete (size + 1) (perInsert (size + 1) p)) perBase [1 .. size]
+        let !perF = force per
 
-        let repeat_loop itr = do
+        let repeatLoop itr = do
             -- Record building step
             start <- liftIO getCurrentTime
-            let (root_list, splits) = build_root_list per_f
-            let !root_list_f = force root_list
-            let !splits_f = force splits
+            let (rootList, splits) = buildRootList perF
+            let !rootListF = force rootList
+            let !splitsF = force splits
             end <- liftIO getCurrentTime
 
             let elapsedTime = realToFrac $ end `diffUTCTime` start
 
-            putStrLn (show size ++ "," ++ show elapsedTime ++ "," ++ show splits_f)
+            putStrLn (show size ++ "," ++ show elapsedTime ++ "," ++ show splitsF)
             hFlush stdout
 
-            when (itr + 1 < repeats) (repeat_loop (itr + 1))
+            when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-        repeat_loop 0
+        repeatLoop 0
 
-        when (size < size_end) (size_loop (ceiling ((fromIntegral size) * size_incr_mul)))
+        when (size < sizeEnd) (sizeLoop (ceiling ((fromIntegral size) * sizeIncrMul)))
 
-    size_loop size_start
+    sizeLoop sizeStart
 
 
-query_only_inserts_fixed_size_sum_elements_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
-    let time_start = 1000
-    let time_incr_mul = 1.3 :: Float
+queryOnlyInsertsFixedSizeSumElementsRuntimeTest (ephEmpty, ephInsert, _) (perEmpty, perInsert, _) = do
+    let timeStart = 1000
+    let timeIncrMul = 1.3 :: Float
     
     let size = 200000
     
-    let seed_start = 0
-    let seed_end = 40
+    let seedStart = 0
+    let seedEnd = 40
 
     let repeats = 20
 
     putStrLn "seed,version,eph,per"
 
-    let seed_loop seed = do
+    let seedLoop seed = do
         let pureGen = mkStdGen seed
-        let !random_permutation = random_shuffle size pureGen
+        let !randomPermutation = randomShuffle size pureGen
 
-        let (_ : eph_list, _, times) = foldl 
-                (\(eph_h : eph_t, next_time, times) (time, elm) ->
-                    let new_eph = eph_insert elm eph_h in
-                    if (time == next_time)
-                        then let new_next_time = ceiling ((fromIntegral next_time) * time_incr_mul) in
-                             (new_eph : new_eph : eph_t, new_next_time, time : times)
-                        else (new_eph : eph_t, next_time, times)
+        let (_ : ephList, _, times) = foldl 
+                (\(ephH : ephT, nextTime, times) (time, elm) ->
+                    let newEph = ephInsert elm ephH in
+                    if (time == nextTime)
+                        then let newNextTime = ceiling ((fromIntegral nextTime) * timeIncrMul) in
+                             (newEph : newEph : ephT, newNextTime, time : times)
+                        else (newEph : ephT, nextTime, times)
                 )
-                ([eph_empty], time_start, [])
-                (zip [1..] random_permutation)
+                ([ephEmpty], timeStart, [])
+                (zip [1..] randomPermutation)
         
-        let !eph_list_f = force (reverse eph_list)
-        let !times_f = force (reverse times)
+        let !ephListF = force (reverse ephList)
+        let !timesF = force (reverse times)
 
-        let per = foldl (flip per_insert) per_empty random_permutation
-        let (rootNodeList, _) = build_root_list per
+        let per = foldl (flip perInsert) perEmpty randomPermutation
+        let (rootNodeList, _) = buildRootList per
         let rootMap = MB.fromDistinctDescList rootNodeList
-        let !rootMap_f = force rootMap
+        let !rootMapF = force rootMap
 
-        let per_tree = construct (fieldCount per) rootMap
+        let perTree = construct (fieldCount per) rootMap
 
 
-        let time_loop times ephs = do
+        let timeLoop times ephs = do
             let !time = force (head times)
             let !eph = force (head ephs)
             
-            let repeat_loop itr = do
-                start_eph <- liftIO getCurrentTime
-                let eph_sum = EPH.sum eph
-                let !eph_f = force eph_sum
-                end_eph <- liftIO getCurrentTime
-                let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
+            let repeatLoop itr = do
+                startEph <- liftIO getCurrentTime
+                let ephSum = EPH.sum eph
+                let !ephF = force ephSum
+                endEph <- liftIO getCurrentTime
+                let elapsedTimeEph = realToFrac $ endEph `diffUTCTime` startEph
 
-                start_per <- liftIO getCurrentTime
-                let per_sum = EPH.sum (per_tree time)
-                let !per_f = force per_sum
-                end_per <- liftIO getCurrentTime
-                let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+                startPer <- liftIO getCurrentTime
+                let perSum = EPH.sum (perTree time)
+                let !perF = force perSum
+                endPer <- liftIO getCurrentTime
+                let elapsedTimePer = realToFrac $ endPer `diffUTCTime` startPer
 
-                putStrLn (show seed ++ "," ++ show time ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
+                putStrLn (show seed ++ "," ++ show time ++ "," ++ show elapsedTimeEph ++ "," ++ show elapsedTimePer)
                 hFlush stdout
 
-                when (itr + 1 < repeats) (repeat_loop (itr + 1))
+                when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-            repeat_loop 0
+            repeatLoop 0
 
-            when (tail times /= []) (time_loop (tail times) (tail ephs))
+            when (tail times /= []) (timeLoop (tail times) (tail ephs))
         
-        time_loop times_f eph_list_f
+        timeLoop timesF ephListF
 
-        when (seed + 1 < seed_end) (seed_loop (seed + 1))
+        when (seed + 1 < seedEnd) (seedLoop (seed + 1))
 
-    seed_loop seed_start
+    seedLoop seedStart
 
 
-query_only_inserts_range_fixed_size_sum_elements_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, _) = do
-    let time_start = 1000
-    let time_incr_mul = 1.3 :: Float
+queryOnlyInsertsRangeFixedSizeSumElementsRuntimeTest (ephEmpty, ephInsert, _) (perEmpty, perInsert, _) = do
+    let timeStart = 1000
+    let timeIncrMul = 1.3 :: Float
     
     let size = 100000
 
@@ -963,150 +962,150 @@ query_only_inserts_range_fixed_size_sum_elements_runtime_test (eph_empty, eph_in
 
     let !elements = [1::Int .. size]
 
-    let (_ : eph_list, _, times) = foldl 
-            (\(eph_h : eph_t, next_time, times) (time, elm) ->
-                let new_eph = eph_insert elm eph_h in
-                if (time == next_time)
-                    then let new_next_time = ceiling ((fromIntegral next_time) * time_incr_mul) in
-                            (new_eph : new_eph : eph_t, new_next_time, time : times)
-                    else (new_eph : eph_t, next_time, times)
+    let (_ : ephList, _, times) = foldl 
+            (\(ephH : ephT, nextTime, times) (time, elm) ->
+                let newEph = ephInsert elm ephH in
+                if (time == nextTime)
+                    then let newNextTime = ceiling ((fromIntegral nextTime) * timeIncrMul) in
+                            (newEph : newEph : ephT, newNextTime, time : times)
+                    else (newEph : ephT, nextTime, times)
             )
-            ([eph_empty], time_start, [])
+            ([ephEmpty], timeStart, [])
             (zip [1..] elements)
     
-    let !eph_list_f = force (reverse eph_list)
-    let !times_f = force (reverse times)
+    let !ephListF = force (reverse ephList)
+    let !timesF = force (reverse times)
 
-    let per = foldl (flip per_insert) per_empty elements
-    let (rootNodeList, _) = build_root_list per
+    let per = foldl (flip perInsert) perEmpty elements
+    let (rootNodeList, _) = buildRootList per
     let rootMap = MB.fromDistinctDescList rootNodeList
-    let !rootMap_f = force rootMap
+    let !rootMapF = force rootMap
 
-    let per_tree = construct (fieldCount per) rootMap
+    let perTree = construct (fieldCount per) rootMap
 
 
-    let time_loop times ephs = do
+    let timeLoop times ephs = do
         let !time = force (head times)
         let !eph = force (head ephs)
         
-        let repeat_loop itr = do
-            start_eph <- liftIO getCurrentTime
-            let eph_sum = RB.sum eph
-            let !eph_f = force eph_sum
-            end_eph <- liftIO getCurrentTime
-            let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
+        let repeatLoop itr = do
+            startEph <- liftIO getCurrentTime
+            let ephSum = RB.sum eph
+            let !ephF = force ephSum
+            endEph <- liftIO getCurrentTime
+            let elapsedTimeEph = realToFrac $ endEph `diffUTCTime` startEph
 
-            start_per <- liftIO getCurrentTime
-            let per_sum = RB.sum (per_tree time)
-            let !per_f = force per_sum
-            end_per <- liftIO getCurrentTime
-            let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+            startPer <- liftIO getCurrentTime
+            let perSum = RB.sum (perTree time)
+            let !perF = force perSum
+            endPer <- liftIO getCurrentTime
+            let elapsedTimePer = realToFrac $ endPer `diffUTCTime` startPer
 
-            putStrLn (show time ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
+            putStrLn (show time ++ "," ++ show elapsedTimeEph ++ "," ++ show elapsedTimePer)
             hFlush stdout
 
-            when (itr + 1 < repeats) (repeat_loop (itr + 1))
+            when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-        repeat_loop 0
+        repeatLoop 0
 
-        when (tail times /= []) (time_loop (tail times) (tail ephs))
+        when (tail times /= []) (timeLoop (tail times) (tail ephs))
     
-    time_loop times_f eph_list_f
+    timeLoop timesF ephListF
 
 
-query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test (eph_empty, eph_insert, _) (per_empty, per_insert, per_delete) = do
-    let time_start = 10
-    let time_incr_mul = 1.2 :: Float
+queryWorstCaseInsertDeleteFixedSizeContainsLowLeafRuntimeTest (ephEmpty, ephInsert, _) (perEmpty, perInsert, perDelete) = do
+    let timeStart = 10
+    let timeIncrMul = 1.2 :: Float
     
     let size = 3000
 
-    let time_end = 3 * size
-    let real_time_start = time_start + size
+    let timeEnd = 3 * size
+    let realTimeStart = timeStart + size
     
     let repeats = 30
 
     putStrLn "version,eph,per"
 
 
-    let eph_leaf = foldl (flip eph_insert) eph_empty [1 :: Int .. size]
-    let eph_node = eph_insert (size + 1) eph_leaf
+    let ephLeaf = foldl (flip ephInsert) ephEmpty [1 :: Int .. size]
+    let ephNode = ephInsert (size + 1) ephLeaf
 
-    let per_base = foldl (flip per_insert) per_empty [1 :: Int .. size]
-    let per = foldl (\p _ -> per_delete (size + 1) (per_insert (size + 1) p)) per_base [1 .. size]
+    let perBase = foldl (flip perInsert) perEmpty [1 :: Int .. size]
+    let per = foldl (\p _ -> perDelete (size + 1) (perInsert (size + 1) p)) perBase [1 .. size]
 
-    let (rootNodeList, _) = build_root_list per
+    let (rootNodeList, _) = buildRootList per
     let rootMap = MB.fromDistinctDescList rootNodeList
-    let !rootMap_f = force rootMap
+    let !rootMapF = force rootMap
 
-    let per_tree = construct (fieldCount per) rootMap
+    let perTree = construct (fieldCount per) rootMap
     
-    let time_loop time = do
-        let !eph = force (if (EPH.contains (size + 1) (per_tree time)) then eph_node else eph_leaf) 
+    let timeLoop time = do
+        let !eph = force (if (EPH.contains (size + 1) (perTree time)) then ephNode else ephLeaf) 
 
-        let repeat_loop itr = do
-            start_eph <- liftIO getCurrentTime
-            let eph_res = EPH.contains (size + 1) eph
-            let !eph_f = force eph_res
-            end_eph <- liftIO getCurrentTime
-            let elapsedTime_eph = realToFrac $ end_eph `diffUTCTime` start_eph
+        let repeatLoop itr = do
+            startEph <- liftIO getCurrentTime
+            let ephRes = EPH.contains (size + 1) eph
+            let !ephF = force ephRes
+            endEph <- liftIO getCurrentTime
+            let elapsedTimeEph = realToFrac $ endEph `diffUTCTime` startEph
 
-            start_per <- liftIO getCurrentTime
-            let per_res = EPH.contains (size + 1) (per_tree time)
-            let !per_f = force per_res
-            end_per <- liftIO getCurrentTime
-            let elapsedTime_per = realToFrac $ end_per `diffUTCTime` start_per
+            startPer <- liftIO getCurrentTime
+            let perRes = EPH.contains (size + 1) (perTree time)
+            let !perF = force perRes
+            endPer <- liftIO getCurrentTime
+            let elapsedTimePer = realToFrac $ endPer `diffUTCTime` startPer
 
-            putStrLn (show time ++ "," ++ show elapsedTime_eph ++ "," ++ show elapsedTime_per)
+            putStrLn (show time ++ "," ++ show elapsedTimeEph ++ "," ++ show elapsedTimePer)
             hFlush stdout
 
-            when (itr + 1 < repeats) (repeat_loop (itr + 1))
+            when (itr + 1 < repeats) (repeatLoop (itr + 1))
 
-        repeat_loop 0
+        repeatLoop 0
 
-        let new_time = ceiling ((fromIntegral time) * time_incr_mul)
+        let newTime = ceiling ((fromIntegral time) * timeIncrMul)
 
-        when (new_time < time_end) (time_loop new_time)
+        when (newTime < timeEnd) (timeLoop newTime)
     
-    time_loop real_time_start
+    timeLoop realTimeStart
 
 
 main = do
-    -- small_ephemeral_tree_build EPH.get_func EPH.contains
-    -- small_ephemeral_tree_build RB.get_func RB.member
-    -- small_persistent_tree_build PER_M.get_func
-    -- small_persistent_tree_build PER.get_func
-    -- small_persistent_rotate
-    -- small_ephemeral_list_build
+    smallEphemeralTreeBuild EPH.getFunc EPH.contains
+    smallEphemeralTreeBuild RB.getFunc RB.member
+    smallPersistentTreeBuild PERmock.getFunc
+    smallPersistentTreeBuild PER.getFunc
+    smallPersistentRotate
+    smallEphemeralListBuild
     
-    -- correctness_test EPH.get_func PER.get_func
-    -- correctness_test RB.get_func RB_per.get_func
-    -- delete_persistent_compare
-    -- random_access_list_correctness
+    correctnessTest EPH.getFunc PER.getFunc
+    correctnessTest RB.getFunc RBPer.getFunc
+    deletePersistentCompare
+    randomAccessListCorrectness
 
-    -- ephemeral_tree_node_size_test EPH.get_func
-    -- sanity_size_test
+    ephemeralTreeNodeSizeTest EPH.getFunc
+    sanitySizeTest
 
-    -- size_compare_test (build_binary_tree_without_duplicates EPH.get_func PER.get_func)
-    -- size_compare_test (build_and_destroy_binary_tree_without_duplicates EPH.get_func PER.get_func)
-    -- size_worst_case_compare_test EPH.get_func PER.get_func
-    -- size_worst_case_test PER.get_func
-    -- size_worst_case_range_test PER.get_func
+    sizeCompareTest (buildBinaryTreeWithoutDuplicates EPH.getFunc PER.getFunc)
+    sizeCompareTest (buildAndDestroyBinaryTreeWithoutDuplicates EPH.getFunc PER.getFunc)
+    sizeWorstCaseCompareTest EPH.getFunc PER.getFunc
+    sizeWorstCaseTest PER.getFunc
+    sizeWorstCaseRangeTest PER.getFunc
 
-    -- update_insert_total_runtime_test EPH.get_func PER.get_func
-    -- update_insert_and_delete_total_runtime_test EPH.get_func PER.get_func
+    updateInsertTotalRuntimeTest EPH.getFunc PER.getFunc
+    updateInsertAndDeleteTotalRuntimeTest EPH.getFunc PER.getFunc
 
-    -- sanity_runtime_check
-    small_dag_build PER.get_func
-    -- dag_build_insert_only_speed_test PER.get_func  -- TODO: this one!
-    dag_build_insert_delete_speed_test PER.get_func
-    -- dag_build_worst_case_delete_speed_test PER.get_func
+    sanityRuntimeCheck
+    smallDagBuild PER.getFunc
+    dagBuildInsertOnlySpeedTest PER.getFunc
+    dagBuildInsertDeleteSpeedTest PER.getFunc
+    dagBuildWorstCaseDeleteSpeedTest PER.getFunc
 
-    -- query_only_inserts_fixed_size_sum_elements_runtime_test EPH.get_func PER.get_func
-    -- query_only_inserts_range_fixed_size_sum_elements_runtime_test RB.get_func RB_per.get_func
-    -- query_worst_case_insert_delete_fixed_size_contains_low_leaf_runtime_test EPH.get_func PER.get_func
+    queryOnlyInsertsFixedSizeSumElementsRuntimeTest EPH.getFunc PER.getFunc
+    queryOnlyInsertsRangeFixedSizeSumElementsRuntimeTest RB.getFunc RBPer.getFunc
+    queryWorstCaseInsertDeleteFixedSizeContainsLowLeafRuntimeTest EPH.getFunc PER.getFunc
 
-    -- update_insert_range_total_runtime_test RB.get_func RB_per.get_func
+    updateInsertRangeTotalRuntimeTest RB.getFunc RBPer.getFunc
 
-    -- let (eph, per) = build_binary_tree_without_duplicates EPH.get_func PER.get_func 10 1
-    -- let tree_10 : eph_rest = eph
-    -- putStrLn (pretty_tree tree_10)
+    let (eph, per) = buildBinaryTreeWithoutDuplicates EPH.getFunc PER.getFunc 10 1
+    let tree10 : ephRest = eph
+    putStrLn (prettyTree tree10)

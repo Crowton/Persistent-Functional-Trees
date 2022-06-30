@@ -1,15 +1,14 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use camelCase" #-}
-module Binary_Tree_ephemeral where
+module BinaryTreeEphemeral where
 
 import DataRecords
 
 import Prelude hiding (sum)
 
 
-get_func :: Ord s => EPH_BST s s
-get_func = (Leaf, insert, delete)
+getFunc :: Ord s => EPH_BST s s
+getFunc = (Leaf, insert, delete)
 
 
 contains :: Ord e => e -> Tree e -> Bool
@@ -33,17 +32,17 @@ insert e Node {elm=elm, children=[left, right]}
   | otherwise = Node {elm=elm, children=[left, insert e right]}
 
 
-extract_max :: Ord e => Tree e -> (Tree e, Maybe e)
-extract_max Leaf = (Leaf, Nothing)
-extract_max Node {elm=elm, children=[left, Leaf]} = (left, Just elm)
-extract_max Node {elm=elm, children=[left, right]} =
-    let (right', max) = extract_max right in
+extractMax :: Ord e => Tree e -> (Tree e, Maybe e)
+extractMax Leaf = (Leaf, Nothing)
+extractMax Node {elm=elm, children=[left, Leaf]} = (left, Just elm)
+extractMax Node {elm=elm, children=[left, right]} =
+    let (right', max) = extractMax right in
     (Node {elm=elm, children=[left, right']}, max)
 
 delete :: Ord e => e -> Tree e -> Tree e
 delete _ Leaf = Leaf
 delete e Node {elm=elm, children=[left, right]}
-  | e == elm = let (left', max) = extract_max left in
+  | e == elm = let (left', max) = extractMax left in
                case max of
                    Nothing -> right
                    Just elm' -> Node {elm=elm', children=[left', right]}
@@ -52,6 +51,6 @@ delete e Node {elm=elm, children=[left, right]}
 
 
 
-rotate_right :: Tree s -> Tree s
-rotate_right (Node x [Node y [a, b], c]) = Node y [a, Node x [b, c]]
-rotate_right node = node
+rotateRight :: Tree s -> Tree s
+rotateRight (Node x [Node y [a, b], c]) = Node y [a, Node x [b, c]]
+rotateRight node = node

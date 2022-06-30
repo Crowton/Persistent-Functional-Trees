@@ -10,27 +10,26 @@ import Control.DeepSeq
 -- Update structure
 
 data TimeEdge = TimeEdge
-    { id_from :: Int
+    { idFrom :: Int
     , field :: Int
-    , id_to :: Int
-    , time_from :: Int
-    , time_to :: Int
+    , idTo :: Int
+    , timeFrom :: Int
+    , timeTo :: Int
     }
     deriving (Eq, Ord, Show, Generic, NFData)
 
 data TimeTree s
     = TimeLeaf
     | TimeNode
-        { t_elm :: s
-        , t_id :: Int
-        , t_fields :: [(Int, TimeTree s)] -- (Exists from time, nodeto)
+        { tElm :: s
+        , tId :: Int
+        , tFields :: [(Int, TimeTree s)] -- (Exists from time, nodeto)
         }
     deriving (Eq, Show, Generic, NFData)
 
--- TODO: add dynamic information
 data PartialTree s = PartialTree
     { edgeFreezer :: [TimeEdge]
-    , idStaticList :: [(Int, s)]  -- (id, static_info)
+    , idStaticList :: [(Int, s)]  -- (id, staticInfo)
     , rootList :: [(Int, Int)]  -- (time, id), convention: id '-1' is the empty tree
     , idCount :: Int
     , fieldCount :: Int
@@ -74,10 +73,10 @@ data FrozenNode staticType = FrozenNode
     deriving (Show, Generic, NFData)
 
 data FrozenEdge staticType = FrozenEdge
-    { field_from :: Int
-    , node_to :: FrozenNode staticType
-    , frozen_time_from :: Int
-    , frozen_time_to :: Int
+    { fieldFrom :: Int
+    , nodeTo :: FrozenNode staticType
+    , frozenTimeFrom :: Int
+    , frozenTimeTo :: Int
     }
     deriving (Show, Generic, NFData)
 

@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Use camelCase" #-}
 module Prettify where
 
 import Data.String
@@ -7,24 +6,22 @@ import Data.List
 
 import DataRecords
 
-import Debug.Trace
 
-
-pretty_tree :: Show e => Tree e -> String
-pretty_tree tree =
-    let to_str tree indent = case tree of
+prettyTree :: Show e => Tree e -> String
+prettyTree tree =
+    let toStr tree indent = case tree of
             Leaf -> indent ++ "|- "
             Node {elm=elm, children=children} ->
-                indent ++ "|- " ++ (show elm) ++ "\n" ++ (intercalate "\n" (map (\c -> to_str c (indent ++ "|  ")) children))
+                indent ++ "|- " ++ (show elm) ++ "\n" ++ (intercalate "\n" (map (\c -> toStr c (indent ++ "|  ")) children))
     in
-    to_str tree ""
+    toStr tree ""
 
 
-pretty_time_tree :: Show e => Int -> TimeTree e -> String
-pretty_time_tree time tree =
-    let to_str tree time indent = case tree of
+prettyTimeTree :: Show e => Int -> TimeTree e -> String
+prettyTimeTree time tree =
+    let toStr tree time indent = case tree of
             TimeLeaf -> indent ++ "|- (" ++ (show time) ++ ")"
-            TimeNode {t_elm=elm, t_fields=children} ->
-                indent ++ "|- " ++ (show elm) ++ " (" ++ (show time) ++ ") \n" ++ (intercalate "\n" (map (\(t, c) -> to_str c t (indent ++ "|  ")) children))
+            TimeNode {tElm=elm, tFields=children} ->
+                indent ++ "|- " ++ (show elm) ++ " (" ++ (show time) ++ ") \n" ++ (intercalate "\n" (map (\(t, c) -> toStr c t (indent ++ "|  ")) children))
     in
-    to_str tree time ""
+    toStr tree time ""
